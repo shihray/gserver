@@ -1,0 +1,296 @@
+package moduleutil
+
+import (
+	"context"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"os"
+	"os/exec"
+	"os/signal"
+	"path/filepath"
+	"sync"
+	"syscall"
+	"time"
+
+	"github.com/nats-io/nats.go"
+	"github.com/pkg/errors"
+	"github.com/shihray/gserver/logging"
+	module "github.com/shihray/gserver/module"
+	baseModule "github.com/shihray/gserver/module/base"
+	registry "github.com/shihray/gserver/registry"
+	mqrpc "github.com/shihray/gserver/rpc"
+	conf "github.com/shihray/gserver/utils/conf"
+)
+
+type resultInfo struct {
+	Error  interface{} // error data
+	Result interface{} // result
+}
+
+func newOptions(opts ...module.Option) module.Options {
+	// Parse input parameters
+	confPath := flag.String("conf", "", "Server configuration file path")
+	ProcessID := flag.String("pid", "development", "Server ProcessID?")
+	flag.Parse()
+
+	var (
+		applicationDir string = ""
+		err            error  = nil
+	)
+	applicationDir, err = os.Getwd()
+	if err != nil {
+		file, _ := exec.LookPath(os.Args[0])
+		ApplicationPath, _ := filepath.Abs(file)
+		applicationDir, _ = filepath.Split(ApplicationPath)
+	}
+
+	opt := module.Options{
+		WorkDir:          applicationDir,                                      // 工作路徑
+		ProcessID:        *ProcessID,                                          // pid
+		ConfPath:         fmt.Sprintf("/%s/conf/server.json", applicationDir), // config file path
+		Registry:         registry.DefaultRegistry,                            // 註冊器
+		RegisterInterval: time.Millisecond * time.Duration(6000),              // 多久註冊一次
+		RegisterTTL:      time.Millisecond * time.Duration(6500),              // 服務器存活時間
+		Debug:            true,                                                // 初始化偵錯模式
+	}
+	for _, o := range opts {
+		o(&opt)
+	}
+
+	if opt.Nats == nil {
+		nc, err := nats.Connect(nats.DefaultURL)
+		if err != nil {
+			logging.Error("Nats 無法取得連線: %s", err.Error())
+		}
+		opt.Nats = nc
+	}
+
+	if *confPath != "" {
+		opt.ConfPath = *confPath
+	}
+
+	_, err = os.Open(opt.ConfPath)
+	if err != nil {
+		panic(fmt.Sprintf("config path error %v", err)) // 文件不存在
+	}
+
+	return opt
+}
+
+type ModuleUtil struct {
+	version         string
+	settings        conf.Config
+	serverList      sync.Map
+	opts            module.Options
+	rpcSerializes   map[string]module.RPCSerialize
+	mapRoute        func(app module.App, route string) string // 將RPC註冊到router上
+	configLoaded    func(app module.App)
+	startup         func(app module.App)
+	moduleInited    func(app module.App, module module.Module)
+	protocolMarshal func(Result interface{}, Error interface{}) (module.ProtocolMarshal, string)
+	lock            sync.RWMutex
+}
+
+func NewApp(opts ...module.Option) module.App {
+	options := newOptions(opts...)
+	mu := new(ModuleUtil)
+	mu.opts = options
+	mu.rpcSerializes = map[string]module.RPCSerialize{}
+
+	return mu
+}
+
+func (mu *ModuleUtil) OnInit(settings conf.Config) error {
+	mu.lock.Lock()
+	mu.settings = settings
+	mu.lock.Unlock()
+	return nil
+}
+
+func (mu *ModuleUtil) Configure(settings conf.Config) error {
+	mu.lock.Lock()
+	mu.settings = settings
+	mu.lock.Unlock()
+	return nil
+}
+
+func (mu *ModuleUtil) GetSettings() conf.Config {
+	return mu.settings
+}
+
+func (mu *ModuleUtil) GetProcessID() string {
+	return mu.opts.ProcessID
+}
+
+func (mu *ModuleUtil) Run(mods ...module.Module) error {
+	f, err := os.Open(mu.opts.ConfPath)
+	if err != nil {
+		panic(fmt.Sprintf("config path error %v", err))
+	}
+	fmt.Printf("Server configuration path : %s\n", mu.opts.ConfPath)
+
+	conf.LoadConfig(f.Name())
+	mu.OnInit(conf.Conf)
+
+	manager := baseModule.NewModuleManager()
+	// register module to manager
+	for i := 0; i < len(mods); i++ {
+		mods[i].OnAppConfigurationLoaded(mu)
+		manager.Register(mods[i])
+	}
+	mu.OnInit(mu.settings)
+	manager.Init(mu, mu.opts.ProcessID)
+	if mu.startup != nil {
+		mu.startup(mu)
+	}
+	// close
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGTERM)
+	sig := <-c
+
+	wait := make(chan struct{})
+	go func() {
+		manager.Destroy()
+		mu.OnDestroy()
+		wait <- struct{}{}
+	}()
+	select {
+	case <-wait:
+		logging.Info("mqant closing down (signal: %v)", sig)
+	}
+
+	return nil
+}
+
+func (mu *ModuleUtil) SetMapRoute(fn func(app module.App, route string) string) error {
+	mu.lock.Lock()
+	mu.mapRoute = fn
+	mu.lock.Unlock()
+	return nil
+}
+
+func (mu *ModuleUtil) AddRPCSerialize(name string, Interface module.RPCSerialize) error {
+	if _, ok := mu.rpcSerializes[name]; ok {
+		return fmt.Errorf("The name(%s) has been occupied", name)
+	}
+	mu.rpcSerializes[name] = Interface
+	return nil
+}
+
+func (mu *ModuleUtil) Options() module.Options {
+	return mu.opts
+}
+
+func (mu *ModuleUtil) Transport() *nats.Conn {
+	return mu.opts.Nats
+}
+
+func (mu *ModuleUtil) Registry() registry.Registry {
+	return mu.opts.Registry
+}
+
+func (mu *ModuleUtil) GetRPCSerialize() map[string]module.RPCSerialize {
+	return mu.rpcSerializes
+}
+
+// 移除已註銷的服務
+func (mu *ModuleUtil) RemoveSutdownService(s *registry.Service) {
+	session, ok := mu.serverList.Load(s.ID)
+	if ok && session != nil {
+		session.(module.ServerSession).GetRpc().Done()
+		mu.serverList.Delete(s.ID)
+	}
+}
+
+func (mu *ModuleUtil) OnDestroy() error {
+	return nil
+}
+
+func (mu *ModuleUtil) GetServerByID(id string) (module.ServerSession, error) {
+	if server, ok := mu.serverList.Load(id); ok {
+		return server.(module.ServerSession), nil
+	}
+	return nil, errors.Errorf("%s Service Not Found", id)
+}
+
+func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, ifunc string, params ...interface{}) (result interface{}, err string) {
+	server, e := mu.GetServerByID(moduleID)
+	if e != nil {
+		err = e.Error()
+		return
+	}
+	return server.Call(nil, ifunc, params...)
+}
+
+func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, ifunc string, params ...interface{}) (err error) {
+	server, err := mu.GetServerByID(moduleID)
+	if err != nil {
+		return
+	}
+	return server.CallNR(ifunc, params...)
+}
+
+func (mu *ModuleUtil) RpcCall(ctx context.Context, moduleID, ifunc string, param mqrpc.ParamOption) (result interface{}, errstr string) {
+	server, err := mu.GetServerByID(moduleID)
+	if err != nil {
+		errstr = err.Error()
+		return
+	}
+	return server.Call(ctx, ifunc, param()...)
+}
+
+func (mu *ModuleUtil) GetModuleInited() func(app module.App, module module.Module) {
+	return mu.moduleInited
+}
+
+func (mu *ModuleUtil) OnConfigLoaded(ifunc func(app module.App)) error {
+	mu.configLoaded = ifunc
+	return nil
+}
+
+func (mu *ModuleUtil) OnModuleInited(ifunc func(app module.App, module module.Module)) error {
+	mu.moduleInited = ifunc
+	return nil
+}
+
+func (mu *ModuleUtil) OnStartup(ifunc func(app module.App)) error {
+	mu.startup = ifunc
+	return nil
+}
+
+// 回傳Client端格式設定
+type protocolMarshalImp struct {
+	data []byte
+}
+
+func (this *protocolMarshalImp) GetData() []byte {
+	return this.data
+}
+
+func (mu *ModuleUtil) SetProtocolMarshal(protocolMarshal func(Result interface{}, Error interface{}) (module.ProtocolMarshal, string)) error {
+	mu.protocolMarshal = protocolMarshal
+	return nil
+}
+
+func (mu *ModuleUtil) ProtocolMarshal(Result interface{}, Error interface{}) (module.ProtocolMarshal, string) {
+	if mu.protocolMarshal != nil {
+		return mu.protocolMarshal(Result, Error)
+	}
+	r := &resultInfo{
+		Error:  Error,
+		Result: Result,
+	}
+	b, err := json.Marshal(r)
+	if err == nil {
+		return mu.NewProtocolMarshal(b), ""
+	} else {
+		return nil, err.Error()
+	}
+}
+
+func (mu *ModuleUtil) NewProtocolMarshal(data []byte) module.ProtocolMarshal {
+	return &protocolMarshalImp{
+		data: data,
+	}
+}
