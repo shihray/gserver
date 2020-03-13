@@ -19,7 +19,7 @@ func (s *rpcserver) GetID() string {
 
 func (s *rpcserver) OnInit(module module.Module, app module.App, settings *conf.ModuleSettings) {
 	s.settings = settings
-	server, err := defaultrpc.NewRPCServer(app, module) // 默认会创建一个本地的RPC
+	server, err := defaultrpc.NewRPCServer(app, module)
 	if err != nil {
 		logging.Warn("Dial: %s", err)
 	}

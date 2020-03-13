@@ -66,7 +66,6 @@ func (c *NatsClient) Done() (err error) {
 
 // 消息請求
 func (c *NatsClient) Call(callInfo mqrpc.CallInfo, callback chan rpcpb.ResultInfo) error {
-	//var err error
 	if c.callinfos == nil {
 		return fmt.Errorf("AMQPClient is closed")
 	}

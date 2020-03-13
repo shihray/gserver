@@ -18,17 +18,17 @@ type ServerSession interface {
 	GetName() string
 	GetRpc() mqrpc.RPCClient
 	GetApp() App
-	Call(ctx context.Context, _func string, params ...interface{}) (interface{}, string)
-	CallNR(_func string, params ...interface{}) (err error)
-	CallArgs(ctx context.Context, _func string, ArgsType []string, args [][]byte) (interface{}, string)
-	CallNRArgs(_func string, ArgsType []string, args [][]byte) (err error)
+	Call(ctx context.Context, ifunc string, params ...interface{}) (interface{}, string)
+	CallNR(ifunc string, params ...interface{}) (err error)
+	// CallArgs(ctx context.Context, ifunc string, argsType []string, args [][]byte) (interface{}, string)
+	// CallNRArgs(ifunc string, argsType []string, args [][]byte) (err error)
 }
 
 type Module interface {
-	Version() string                             //模块版本
-	GetType() string                             //模块类型
-	OnAppConfigurationLoaded(app App)            //当App初始化时调用，这个接口不管这个模块是否在这个进程运行都会调用
-	OnConfChanged(settings *conf.ModuleSettings) //为以后动态服务发现做准备
+	Version() string                             //模塊版本
+	GetType() string                             //模塊類型
+	OnAppConfigurationLoaded(app App)            //當App初始化時調用，這個接口不管這個模塊是否在這個進程運行都會調用
+	OnConfChanged(settings *conf.ModuleSettings) //為以後動態服務發現做準備
 	OnInit(app App, settings *conf.ModuleSettings)
 	OnDestroy()
 	GetApp() App
@@ -37,15 +37,15 @@ type Module interface {
 
 type RPCModule interface {
 	Module
-	GetServerID() string //模块类型
-	RpcInvoke(moduleType string, _func string, params ...interface{}) (interface{}, string)
-	RpcInvokeNR(moduleType string, _func string, params ...interface{}) error
-	RpcInvokeArgs(moduleType string, _func string, ArgsType []string, args [][]byte) (interface{}, string)
-	RpcInvokeNRArgs(moduleType string, _func string, ArgsType []string, args [][]byte) error
+	GetServerID() string //模塊類型
+	RpcInvoke(moduleType string, ifunc string, params ...interface{}) (interface{}, string)
+	RpcInvokeNR(moduleType string, ifunc string, params ...interface{}) error
+	RpcInvokeArgs(moduleType string, ifunc string, argsType []string, args [][]byte) (interface{}, string)
+	RpcInvokeNRArgs(moduleType string, ifunc string, argsType []string, args [][]byte) error
 	GetModuleSettings() (settings *conf.ModuleSettings)
 	/**
-	filter		 调用者服务类型    moduleType|moduleType@moduleID
-	Type	   	想要调用的服务类型
+	filter		 調用者服務類型    moduleType|moduleType@moduleID
+	Type	   	想要調用的服務類型
 	*/
 	GetRouteServer(filter string, hash string) (ServerSession, error)
 	GetStatistical() (statistical string, err error)
@@ -63,7 +63,7 @@ type App interface {
 	Registry() registry.Registry
 	GetServerByID(id string) (ServerSession, error)
 
-	GetSettings() conf.Config //获取配置信息
+	GetSettings() conf.Config //獲取配置信息
 	RpcInvoke(module RPCModule, moduleID string, ifunc string, params ...interface{}) (interface{}, string)
 	RpcInvokeNR(module RPCModule, moduleID string, ifunc string, params ...interface{}) error
 
@@ -80,10 +80,7 @@ type App interface {
 	OnStartup(func(app App)) error
 
 	SetProtocolMarshal(protocolMarshal func(Result interface{}, Error interface{}) (ProtocolMarshal, string)) error
-	/**
-	与客户端通信的协议包接口
-	*/
-	ProtocolMarshal(Result interface{}, Error interface{}) (ProtocolMarshal, string)
+	ProtocolMarshal(Result interface{}, Error interface{}) (ProtocolMarshal, string) // 與客戶端通信的協議包接口
 	NewProtocolMarshal(data []byte) ProtocolMarshal
 	GetProcessID() string
 }

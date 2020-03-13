@@ -127,12 +127,12 @@ func (m *BaseModule) GetModuleSettings() *conf.ModuleSettings {
 	return m.settings
 }
 
-func (m *BaseModule) RpcInvoke(moduleType string, _func string, params ...interface{}) (result interface{}, err string) {
-	return m.App.RpcInvoke(m.GetSubclass(), moduleType, _func, params...)
+func (m *BaseModule) RpcInvoke(moduleType string, ifunc string, params ...interface{}) (result interface{}, err string) {
+	return m.App.RpcInvoke(m.GetSubclass(), moduleType, ifunc, params...)
 }
 
-func (m *BaseModule) RpcInvokeNR(moduleType string, _func string, params ...interface{}) (err error) {
-	return m.App.RpcInvokeNR(m.GetSubclass(), moduleType, _func, params...)
+func (m *BaseModule) RpcInvokeNR(moduleType string, ifunc string, params ...interface{}) (err error) {
+	return m.App.RpcInvokeNR(m.GetSubclass(), moduleType, ifunc, params...)
 }
 
 func (m *BaseModule) RpcCall(ctx context.Context, moduleType, ifunc string, param mqrpc.ParamOption) (interface{}, string) {

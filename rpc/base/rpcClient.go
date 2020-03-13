@@ -15,39 +15,44 @@ import (
 	"github.com/shihray/gserver/utils/uuid"
 )
 
+const (
+	ClientClose      string = "client close"
+	DeadlineExceeded string = "deadline exceeded"
+)
+
 type RPCClient struct {
-	app         module.App
-	nats_client *NatsClient
+	app        module.App
+	natsClient *NatsClient
 }
 
 func NewRPCClient(app module.App, session module.ServerSession) (mqrpc.RPCClient, error) {
 	rpc_client := new(RPCClient)
 	rpc_client.app = app
-	nats_client, err := NewNatsClient(app, session)
+	natsClient, err := NewNatsClient(app, session)
 	if err != nil {
 		logging.Error("Dial: %s", err)
 		return nil, err
 	}
-	rpc_client.nats_client = nats_client
+	rpc_client.natsClient = natsClient
 	return rpc_client, nil
 }
 
 func (c *RPCClient) Done() (err error) {
-	if c.nats_client != nil {
-		err = c.nats_client.Done()
+	if c.natsClient != nil {
+		err = c.natsClient.Done()
 	}
 	return
 }
 
-func (c *RPCClient) CallArgs(ctx context.Context, _func string, ArgsType []string, args [][]byte) (r interface{}, e string) {
+func (c *RPCClient) CallArgs(ctx context.Context, ifunc string, argsType []string, args [][]byte) (r interface{}, e string) {
 	var correlationID = uuid.Rand().Hex()
 	rpcInfo := &rpcpb.RPCInfo{
-		Fn:       *proto.String(_func),
+		Fn:       *proto.String(ifunc),
 		Reply:    *proto.Bool(true),
 		Expired:  *proto.Int64((time.Now().UTC().Add(time.Second * time.Duration(c.app.GetSettings().Rpc.RpcExpired)).UnixNano()) / utils.Nano2Millisecond),
 		Cid:      *proto.String(correlationID),
 		Args:     args,
-		ArgsType: ArgsType,
+		ArgsType: argsType,
 	}
 
 	callInfo := &mqrpc.CallInfo{
@@ -57,7 +62,7 @@ func (c *RPCClient) CallArgs(ctx context.Context, _func string, ArgsType []strin
 
 	var err error
 
-	err = c.nats_client.Call(*callInfo, callback)
+	err = c.natsClient.Call(*callInfo, callback)
 	if err != nil {
 		return nil, err.Error()
 	}
@@ -67,7 +72,7 @@ func (c *RPCClient) CallArgs(ctx context.Context, _func string, ArgsType []strin
 	select {
 	case resultInfo, ok := <-callback:
 		if !ok {
-			return nil, "client closed"
+			return nil, ClientClose
 		}
 		result, err := argsutil.Bytes2Args(c.app, resultInfo.ResultType, resultInfo.Result)
 		if err != nil {
@@ -75,49 +80,49 @@ func (c *RPCClient) CallArgs(ctx context.Context, _func string, ArgsType []strin
 		}
 		return result, resultInfo.Error
 	case <-ctx.Done():
-		c.close_callback_chan(callback)
-		c.nats_client.Delete(rpcInfo.Cid)
-		return nil, "deadline exceeded"
+		c.closeCallbackChan(callback)
+		c.natsClient.Delete(rpcInfo.Cid)
+		return nil, DeadlineExceeded
 	}
 }
 
-func (c *RPCClient) close_callback_chan(ch chan rpcpb.ResultInfo) {
+func (c *RPCClient) closeCallbackChan(ch chan rpcpb.ResultInfo) {
 	defer utils.RecoverFunc()
 	close(ch) // panic if ch is closed
 }
 
-func (c *RPCClient) CallNRArgs(_func string, ArgsType []string, args [][]byte) (err error) {
+func (c *RPCClient) CallNRArgs(ifunc string, argsType []string, args [][]byte) (err error) {
 	var correlationID = uuid.Rand().Hex()
 	rpcInfo := &rpcpb.RPCInfo{
-		Fn:       *proto.String(_func),
+		Fn:       *proto.String(ifunc),
 		Reply:    *proto.Bool(false),
 		Expired:  *proto.Int64((time.Now().UTC().Add(time.Second * time.Duration(c.app.GetSettings().Rpc.RpcExpired)).UnixNano()) / utils.Nano2Millisecond),
 		Cid:      *proto.String(correlationID),
 		Args:     args,
-		ArgsType: ArgsType,
+		ArgsType: argsType,
 	}
 	callInfo := &mqrpc.CallInfo{
 		RpcInfo: *rpcInfo,
 	}
-	return c.nats_client.CallNR(*callInfo)
+	return c.natsClient.CallNR(*callInfo)
 }
 
 /**
 消息请求 需要回复
 */
-func (c *RPCClient) Call(ctx context.Context, _func string, params ...interface{}) (interface{}, string) {
-	var ArgsType []string = make([]string, len(params))
+func (c *RPCClient) Call(ctx context.Context, ifunc string, params ...interface{}) (interface{}, string) {
+	var argsType []string = make([]string, len(params))
 	var args [][]byte = make([][]byte, len(params))
 	for k, param := range params {
 		var err error = nil
-		ArgsType[k], args[k], err = argsutil.ArgsTypeAnd2Bytes(c.app, param)
+		argsType[k], args[k], err = argsutil.ArgsTypeAnd2Bytes(c.app, param)
 		if err != nil {
 			return nil, fmt.Sprintf("args[%d] error %s", k, err.Error())
 		}
 	}
 	start := time.Now()
-	r, errstr := c.CallArgs(ctx, _func, ArgsType, args)
-	logging.Error("RPC Call ServerID = %v Func = %v Elapsed = %v Result = %v ERROR = %v", c.nats_client.session.GetID(), _func, time.Since(start), r, errstr)
+	r, errstr := c.CallArgs(ctx, ifunc, argsType, args)
+	logging.Error("RPC Call ServerID = %v Func = %v Elapsed = %v Result = %v ERROR = %v", c.natsClient.session.GetID(), ifunc, time.Since(start), r, errstr)
 
 	return r, errstr
 }
@@ -125,18 +130,18 @@ func (c *RPCClient) Call(ctx context.Context, _func string, params ...interface{
 /**
 消息请求 不需要回复
 */
-func (c *RPCClient) CallNR(_func string, params ...interface{}) (err error) {
-	var ArgsType []string = make([]string, len(params))
+func (c *RPCClient) CallNR(ifunc string, params ...interface{}) (err error) {
+	var argsType []string = make([]string, len(params))
 	var args [][]byte = make([][]byte, len(params))
 	for k, param := range params {
-		ArgsType[k], args[k], err = argsutil.ArgsTypeAnd2Bytes(c.app, param)
+		argsType[k], args[k], err = argsutil.ArgsTypeAnd2Bytes(c.app, param)
 		if err != nil {
 			return fmt.Errorf("args[%d] error %s", k, err.Error())
 		}
 	}
 	start := time.Now()
-	err = c.CallNRArgs(_func, ArgsType, args)
-	logging.Error("RPC CallNR ServerID = %v Func = %v Elapsed = %v ERROR = %v", c.nats_client.session.GetID(), _func, time.Since(start), err)
+	err = c.CallNRArgs(ifunc, argsType, args)
+	logging.Error("RPC CallNR ServerID = %v Func = %v Elapsed = %v ERROR = %v", c.natsClient.session.GetID(), ifunc, time.Since(start), err)
 
 	return err
 }

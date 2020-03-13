@@ -38,19 +38,18 @@ func (mer *ModuleManager) RegisterRunMod(mi module.Module) {
 func (mer *ModuleManager) Init(app module.App, ProcessID string) {
 	log.Info("This service ModuleGroup(ProcessID) is [%s]", ProcessID)
 	mer.app = app
-	mer.CheckModuleSettings() //配置文件規則檢查
+	mer.CheckModuleSettings() // 配置文件規則檢查
 	for i := 0; i < len(mer.mods); i++ {
 		for Type, modSettings := range app.GetSettings().Module {
 			if mer.mods[i].mi.GetType() == Type {
-				//匹配
+				// 匹配
 				for _, setting := range modSettings {
-					//這裏可能有BUG 公網IP和局域網IP處理方式可能不一樣,先不管
 					if ProcessID == setting.ProcessID {
-						mer.runMods = append(mer.runMods, mer.mods[i]) //這裏加入能夠運行的組件
+						mer.runMods = append(mer.runMods, mer.mods[i]) // 這裏加入能夠運行的組件
 						mer.mods[i].settings = setting
 					}
 				}
-				break //跳出內部循環
+				break // 跳出內部循環
 			}
 		}
 	}
@@ -66,7 +65,6 @@ func (mer *ModuleManager) Init(app module.App, ProcessID string) {
 		m.wg.Add(1)
 		go run(m)
 	}
-	//timer.SetTimer(3, mer.ReportStatistics, nil) //統計匯報定時任務
 }
 
 /**
@@ -82,14 +80,14 @@ func (mer *ModuleManager) CheckModuleSettings() {
 		pID := map[string]string{}
 		for _, setting := range modSettings {
 			if Stype, ok := gID[setting.ID]; ok {
-				//如果ID已經存在,說明有兩個相同ID的模塊,這種情況不能被允許,這裏就直接拋異常 強制崩潰以免以後調試找不到問題
+				// 如果ID已經存在,說明有兩個相同ID的模塊,這種情況不能被允許,這裏就直接拋異常 強制崩潰以免以後調試找不到問題
 				panic(fmt.Sprintf("ID (%s) been used in modules of type [%s] and cannot be reused", setting.ID, Stype))
 			} else {
 				gID[setting.ID] = Type
 			}
 
 			if ID, ok := pID[setting.ProcessID]; ok {
-				//如果ID已經存在,說明有兩個相同ID的模塊,這種情況不能被允許,這裏就直接拋異常 強制崩潰以免以後調試找不到問題
+				// 如果ID已經存在,說明有兩個相同ID的模塊,這種情況不能被允許,這裏就直接拋異常 強制崩潰以免以後調試找不到問題
 				panic(fmt.Sprintf("In the list of modules of type [%s], ProcessID (%s) has been used for ID module for (%s)", Type, setting.ProcessID, ID))
 			} else {
 				pID[setting.ProcessID] = setting.ID

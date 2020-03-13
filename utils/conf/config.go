@@ -36,13 +36,6 @@ type ModuleSettings struct {
 	Settings  map[string]interface{}
 }
 
-type SSH struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-}
-
 type Process struct {
 	ProcessID string
 	Host      string
@@ -58,8 +51,8 @@ type Master struct {
 	Process []*Process
 }
 
+// Read config.
 func LoadConfig(Path string) {
-	// Read config.
 	if err := readFileInto(Path); err != nil {
 		panic(err)
 	}
