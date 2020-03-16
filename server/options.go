@@ -49,6 +49,10 @@ func newOptions(opt ...Option) Options {
 		opts.Version = DefaultVersion
 	}
 
+	if opts.Registry == nil {
+		opts.Registry = registry.DefaultRegistry
+	}
+
 	return opts
 }
 
@@ -84,6 +88,13 @@ func Address(a string) Option {
 func Metadata(md map[string]string) Option {
 	return func(o *Options) {
 		o.Metadata = md
+	}
+}
+
+// Registry used for discovery
+func Registry(r registry.Registry) Option {
+	return func(o *Options) {
+		o.Registry = r
 	}
 }
 

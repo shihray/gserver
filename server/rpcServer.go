@@ -106,7 +106,7 @@ func (s *rpcServer) ServiceRegister() error {
 	s.Unlock()
 
 	if !registered {
-		logging.Info("Registering node: %s", service.ID)
+		logging.Info("Registering node: ", service.ID)
 	}
 
 	// create registry options
@@ -148,7 +148,7 @@ func (s *rpcServer) ServiceDeregister() error {
 		Address: addr,
 	}
 
-	logging.Info("Deregistering node: %s", service.ID)
+	logging.Info("Deregistering node: ", service.ID)
 	if err := config.Registry.Deregister(service); err != nil {
 		return err
 	}

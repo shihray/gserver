@@ -46,13 +46,13 @@ func newOptions(opts ...module.Option) module.Options {
 	}
 
 	opt := module.Options{
-		WorkDir:          applicationDir,                                      // 工作路徑
-		ProcessID:        *ProcessID,                                          // pid
-		ConfPath:         fmt.Sprintf("/%s/conf/server.json", applicationDir), // config file path
-		Registry:         registry.DefaultRegistry,                            // 註冊器
-		RegisterInterval: time.Millisecond * time.Duration(6000),              // 多久註冊一次
-		RegisterTTL:      time.Millisecond * time.Duration(6500),              // 服務器存活時間
-		Debug:            true,                                                // 初始化偵錯模式
+		WorkDir:          applicationDir,                                     // 工作路徑
+		ProcessID:        *ProcessID,                                         // pid
+		ConfPath:         fmt.Sprintf("%s/conf/config.json", applicationDir), // config file path
+		Registry:         registry.DefaultRegistry,                           // 註冊器
+		RegisterInterval: time.Millisecond * time.Duration(6000),             // 多久註冊一次
+		RegisterTTL:      time.Millisecond * time.Duration(6500),             // 服務器存活時間
+		Debug:            true,                                               // 初始化偵錯模式
 	}
 	for _, o := range opts {
 		o(&opt)
@@ -186,6 +186,15 @@ func (mu *ModuleUtil) Transport() *nats.Conn {
 	return mu.opts.Nats
 }
 
+// 把註銷的服務serverSession刪除
+func (mu *ModuleUtil) Watcher(s *registry.Service) {
+	session, ok := mu.serverList.Load(s.ID)
+	if ok && session != nil {
+		session.(module.ServerSession).GetRpc().Done()
+		mu.serverList.Delete(s.ID)
+	}
+}
+
 func (mu *ModuleUtil) Registry() registry.Registry {
 	return mu.opts.Registry
 }
@@ -208,10 +217,59 @@ func (mu *ModuleUtil) OnDestroy() error {
 }
 
 func (mu *ModuleUtil) GetServerByID(id string) (module.ServerSession, error) {
-	if server, ok := mu.serverList.Load(id); ok {
+	services, err := mu.opts.Registry.GetService(id)
+	if err != nil {
+		logging.Warn("GetServersByType %v", err)
+	}
+	for _, service := range services {
+		if _, ok := mu.serverList.Load(service.ID); !ok {
+			s, err := baseModule.NewServerSession(mu, id, service)
+			if err != nil {
+				logging.Warn("NewServerSession %v", err)
+			} else {
+				s.SetService(service)
+				mu.serverList.Store(service.ID, s)
+			}
+		}
+	}
+	if server, ok := mu.serverList.Load(id); !ok {
+		return nil, errors.Errorf("%s Service Not Found", id)
+	} else {
 		return server.(module.ServerSession), nil
 	}
-	return nil, errors.Errorf("%s Service Not Found", id)
+}
+
+func (mu *ModuleUtil) GetServersByType(id string) []module.ServerSession {
+	sessions := make([]module.ServerSession, 0)
+	services, err := mu.opts.Registry.GetService(id)
+	if err != nil {
+		logging.Warn("GetServersByType %v", err)
+		return sessions
+	}
+	for _, service := range services {
+		session, ok := mu.serverList.Load(service.ID)
+		if !ok {
+			s, err := baseModule.NewServerSession(mu, id, service)
+			if err != nil {
+				logging.Warn("NewServerSession %v", err)
+			} else {
+				mu.serverList.Store(service.ID, s)
+				sessions = append(sessions, s)
+			}
+		} else {
+			session.(module.ServerSession).SetService(service)
+			sessions = append(sessions, session.(module.ServerSession))
+		}
+	}
+	return sessions
+}
+
+func (mu *ModuleUtil) GetRouteServer(id string) (s module.ServerSession, err error) {
+	if mu.mapRoute != nil {
+		//进行一次路由转换
+		id = mu.mapRoute(mu, id)
+	}
+	return mu.GetServerByID(id)
 }
 
 func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, ifunc string, params ...interface{}) (result interface{}, err string) {

@@ -123,6 +123,9 @@ func AddConnect(redisName string) (redis.Conn, error) {
 	case "BackendSlave":
 		redisHost = RedisConf.Redis.BackendSlave.GetHostString()
 		pw = RedisConf.Redis.BackendSlave.Password
+	case "RedisRegistry":
+		redisHost = "127.0.0.1:6379"
+		pw = ""
 
 	}
 

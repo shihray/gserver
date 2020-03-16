@@ -7,7 +7,6 @@ import (
 	"github.com/shihray/gserver/registry"
 	mqrpc "github.com/shihray/gserver/rpc"
 	rpcpb "github.com/shihray/gserver/rpc/pb"
-	"github.com/shihray/gserver/selector"
 )
 
 type Option func(*Options)
@@ -22,7 +21,6 @@ type Options struct {
 	BIDir            string
 	ProcessID        string
 	Registry         registry.Registry
-	Selector         selector.Selector
 	RegisterTTL      time.Duration
 	RegisterInterval time.Duration
 	ClientRPChandler ClientRPChandler
@@ -66,5 +64,26 @@ func ProcessID(v string) Option {
 func Nats(nc *nats.Conn) Option {
 	return func(o *Options) {
 		o.Nats = nc
+	}
+}
+
+// Registry sets the registry for the service
+// and the underlying components
+func Registry(r registry.Registry) Option {
+	return func(o *Options) {
+		o.Registry = r
+	}
+}
+
+// RegisterInterval specifies the interval on which to re-register
+func SetClientRPChandler(t ClientRPChandler) Option {
+	return func(o *Options) {
+		o.ClientRPChandler = t
+	}
+}
+
+func SetServerRPCHandler(t ServerRPCHandler) Option {
+	return func(o *Options) {
+		o.ServerRPCHandler = t
 	}
 }

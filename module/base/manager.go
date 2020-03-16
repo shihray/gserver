@@ -36,7 +36,7 @@ func (mer *ModuleManager) RegisterRunMod(mi module.Module) {
 }
 
 func (mer *ModuleManager) Init(app module.App, ProcessID string) {
-	log.Info("This service ModuleGroup(ProcessID) is [%s]", ProcessID)
+	log.Info(fmt.Sprintf("This service ModuleGroup(ProcessID) is [%s]", ProcessID))
 	mer.app = app
 	mer.CheckModuleSettings() // 配置文件規則檢查
 	for i := 0; i < len(mer.mods); i++ {

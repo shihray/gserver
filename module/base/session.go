@@ -9,10 +9,11 @@ import (
 	defaultrpc "github.com/shihray/gserver/rpc/base"
 )
 
-func NewServerSession(app module.App, name string) (module.ServerSession, error) {
+func NewServerSession(app module.App, name string, s *registry.Service) (module.ServerSession, error) {
 	session := &serverSession{
-		name: name,
-		app:  app,
+		name:    name,
+		app:     app,
+		service: s,
 	}
 	rpc, err := defaultrpc.NewRPCClient(app, session)
 	if err != nil {
@@ -35,6 +36,14 @@ func (c *serverSession) GetID() string {
 
 func (c *serverSession) GetName() string {
 	return c.name
+}
+
+func (c *serverSession) GetService() *registry.Service {
+	return c.service
+}
+
+func (c *serverSession) SetService(s *registry.Service) {
+	c.service = s
 }
 
 func (c *serverSession) GetRpc() mqrpc.RPCClient {

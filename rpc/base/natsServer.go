@@ -2,7 +2,6 @@ package defaultrpc
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -21,23 +20,6 @@ type NatsServer struct {
 	server   *RPCServer
 	done     chan error
 	isClose  bool
-}
-
-func setAddrs(addrs []string) []string {
-	var cAddrs []string
-	for _, addr := range addrs {
-		if len(addr) == 0 {
-			continue
-		}
-		if !strings.HasPrefix(addr, "nats://") {
-			addr = "nats://" + addr
-		}
-		cAddrs = append(cAddrs, addr)
-	}
-	if len(cAddrs) == 0 {
-		cAddrs = []string{nats.DefaultURL}
-	}
-	return cAddrs
 }
 
 func NewNatsServer(app module.App, s *RPCServer) (*NatsServer, error) {
@@ -66,8 +48,8 @@ func (s *NatsServer) Shutdown() (err error) {
 // 回傳函數
 func (s *NatsServer) Callback(callinfo mqrpc.CallInfo) error {
 	body, _ := s.MarshalResult(callinfo.Result)
-	reply_to := callinfo.Props["reply_to"].(string)
-	return s.app.Transport().Publish(reply_to, body)
+	replyTo := callinfo.Props["ReplyTo"].(string)
+	return s.app.Transport().Publish(replyTo, body)
 }
 
 // 接收請求信息
@@ -88,7 +70,7 @@ func (s *NatsServer) onRequestHandle() error {
 		if err != nil && err == nats.ErrTimeout {
 			continue
 		} else if err != nil {
-			logging.Error("NatsServer error with '%v'", err)
+			logging.Error("NatsServer error with :", err)
 			continue
 		}
 
@@ -98,9 +80,9 @@ func (s *NatsServer) onRequestHandle() error {
 				RpcInfo: *rpcInfo,
 			}
 			callInfo.Props = map[string]interface{}{
-				"reply_to": rpcInfo.ReplyTo,
+				"ReplyTo": rpcInfo.ReplyTo,
 			}
-			callInfo.Agent = s //設置代理為NatsServer
+			callInfo.Agent = s // 設置代理為 Nats Server
 			s.server.Call(*callInfo)
 		} else {
 			fmt.Println("error ", err)

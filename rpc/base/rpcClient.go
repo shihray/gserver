@@ -30,7 +30,7 @@ func NewRPCClient(app module.App, session module.ServerSession) (mqrpc.RPCClient
 	rpc_client.app = app
 	natsClient, err := NewNatsClient(app, session)
 	if err != nil {
-		logging.Error("Dial: %s", err)
+		logging.Error("Nats RPC Client Create Error Dial: ", err)
 		return nil, err
 	}
 	rpc_client.natsClient = natsClient
@@ -60,9 +60,7 @@ func (c *RPCClient) CallArgs(ctx context.Context, ifunc string, argsType []strin
 	}
 	callback := make(chan rpcpb.ResultInfo, 1)
 
-	var err error
-
-	err = c.natsClient.Call(*callInfo, callback)
+	err := c.natsClient.Call(*callInfo, callback)
 	if err != nil {
 		return nil, err.Error()
 	}
@@ -122,7 +120,8 @@ func (c *RPCClient) Call(ctx context.Context, ifunc string, params ...interface{
 	}
 	start := time.Now()
 	r, errstr := c.CallArgs(ctx, ifunc, argsType, args)
-	logging.Error("RPC Call ServerID = %v Func = %v Elapsed = %v Result = %v ERROR = %v", c.natsClient.session.GetID(), ifunc, time.Since(start), r, errstr)
+	msg := fmt.Sprintf("RPC Call ServerID = %v Func = %v Elapsed = %v Result = %v ERROR = %v", c.natsClient.session.GetID(), ifunc, time.Since(start), r, errstr)
+	logging.Info(msg)
 
 	return r, errstr
 }
@@ -141,7 +140,8 @@ func (c *RPCClient) CallNR(ifunc string, params ...interface{}) (err error) {
 	}
 	start := time.Now()
 	err = c.CallNRArgs(ifunc, argsType, args)
-	logging.Error("RPC CallNR ServerID = %v Func = %v Elapsed = %v ERROR = %v", c.natsClient.session.GetID(), ifunc, time.Since(start), err)
+	msg := fmt.Sprintf("RPC Call ServerID = %v Func = %v Elapsed = %v Result = %v ERROR = %v", c.natsClient.session.GetID(), ifunc, time.Since(start), err)
+	logging.Info(msg)
 
 	return err
 }

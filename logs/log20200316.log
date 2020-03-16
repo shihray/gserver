@@ -1,0 +1,227 @@
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:109]2020/03/16 10:45:46 Registering node:  PING@60bd9d8d709c59fc
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:109]2020/03/16 10:45:46 Registering node:  PONG@b18918c7a1bdef8b
+[DEBUG][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:336]2020/03/16 10:45:47 RPC Exec ModuleType = %v Func = %v Elapsed = %v PONG PING 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:45:47 RPC Call ServerID = PONG Func = PING Elapsed = 997.5µs Result = I'm PONG, Return PING ERROR = 
+[DEBUG][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:336]2020/03/16 10:45:48 RPC Exec ModuleType = %v Func = %v Elapsed = %v PONG PING 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:45:48 RPC Call ServerID = PONG Func = PING Elapsed = 997.8µs Result = I'm PONG, Return PING ERROR = 
+[DEBUG][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:336]2020/03/16 10:45:49 RPC Exec ModuleType = %v Func = %v Elapsed = %v PONG PING 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:45:49 RPC Call ServerID = PONG Func = PING Elapsed = 981.5µs Result = I'm PONG, Return PING ERROR = 
+[DEBUG][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:336]2020/03/16 10:45:50 RPC Exec ModuleType = %v Func = %v Elapsed = %v PONG PING 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:45:50 RPC Call ServerID = PONG Func = PING Elapsed = 975.1µs Result = I'm PONG, Return PING ERROR = 
+[DEBUG][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:336]2020/03/16 10:45:51 RPC Exec ModuleType = %v Func = %v Elapsed = %v PONG PING 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:45:51 RPC Call ServerID = PONG Func = PING Elapsed = 996.9µs Result = I'm PONG, Return PING ERROR = 
+[DEBUG][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:336]2020/03/16 10:45:52 RPC Exec ModuleType = %v Func = %v Elapsed = %v PONG PING 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:45:52 RPC Call ServerID = PONG Func = PING Elapsed = 986.2µs Result = I'm PONG, Return PING ERROR = 
+[DEBUG][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:336]2020/03/16 10:45:53 RPC Exec ModuleType = %v Func = %v Elapsed = %v PONG PING 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:45:53 RPC Call ServerID = PONG Func = PING Elapsed = 997.3µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:109]2020/03/16 10:47:45 Registering node:  PING@acdf4ab3a7bf0663
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:109]2020/03/16 10:47:45 Registering node:  PONG@a4f53d2451ec7700
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:46 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:46 RPC Call ServerID = PONG Func = PING Elapsed = 3.9886ms Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:47 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:47 RPC Call ServerID = PONG Func = PING Elapsed = 999.1µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:48 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:48 RPC Call ServerID = PONG Func = PING Elapsed = 997.3µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:49 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:49 RPC Call ServerID = PONG Func = PING Elapsed = 982.2µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:50 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:50 RPC Call ServerID = PONG Func = PING Elapsed = 997.3µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:51 RPC Exec ModuleType = PONG Func = PING Elapsed = 982.9µs
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:51 RPC Call ServerID = PONG Func = PING Elapsed = 982.9µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:52 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:52 RPC Call ServerID = PONG Func = PING Elapsed = 967.6µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:53 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:53 RPC Call ServerID = PONG Func = PING Elapsed = 997.6µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:54 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:54 RPC Call ServerID = PONG Func = PING Elapsed = 998.1µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:55 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:55 RPC Call ServerID = PONG Func = PING Elapsed = 963.9µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:56 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:56 RPC Call ServerID = PONG Func = PING Elapsed = 998µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:57 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:57 RPC Call ServerID = PONG Func = PING Elapsed = 997.5µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:58 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:58 RPC Call ServerID = PONG Func = PING Elapsed = 995.8µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:47:59 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:47:59 RPC Call ServerID = PONG Func = PING Elapsed = 970.6µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:00 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:00 RPC Call ServerID = PONG Func = PING Elapsed = 996.8µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:01 RPC Exec ModuleType = PONG Func = PING Elapsed = 961.6µs
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:01 RPC Call ServerID = PONG Func = PING Elapsed = 961.6µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:02 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:02 RPC Call ServerID = PONG Func = PING Elapsed = 997.2µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:03 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:03 RPC Call ServerID = PONG Func = PING Elapsed = 996.2µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:04 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:04 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:05 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:05 RPC Call ServerID = PONG Func = PING Elapsed = 948µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:06 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:06 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:07 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:07 RPC Call ServerID = PONG Func = PING Elapsed = 966.8µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:08 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:08 RPC Call ServerID = PONG Func = PING Elapsed = 999.3µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:09 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:09 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:10 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:10 RPC Call ServerID = PONG Func = PING Elapsed = 968.3µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:11 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:11 RPC Call ServerID = PONG Func = PING Elapsed = 997.3µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:12 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:12 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:13 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:13 RPC Call ServerID = PONG Func = PING Elapsed = 966µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:14 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:14 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:15 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:15 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:16 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:16 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:17 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:17 RPC Call ServerID = PONG Func = PING Elapsed = 997.9µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:18 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:18 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:19 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:19 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:20 RPC Exec ModuleType = PONG Func = PING Elapsed = 959.1µs
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:20 RPC Call ServerID = PONG Func = PING Elapsed = 959.1µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:21 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:21 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:22 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:22 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:23 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:23 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:24 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:24 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:25 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:25 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:26 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:26 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:27 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:27 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:28 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:28 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:29 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:29 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:30 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:30 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:31 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:31 RPC Call ServerID = PONG Func = PING Elapsed = 960.4µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:32 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:32 RPC Call ServerID = PONG Func = PING Elapsed = 997.9µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:33 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:33 RPC Call ServerID = PONG Func = PING Elapsed = 997.1µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:34 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:34 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:35 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:35 RPC Call ServerID = PONG Func = PING Elapsed = 997.4µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:36 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:36 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:37 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:37 RPC Call ServerID = PONG Func = PING Elapsed = 997.7µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:38 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:38 RPC Call ServerID = PONG Func = PING Elapsed = 997.8µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:39 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:39 RPC Call ServerID = PONG Func = PING Elapsed = 974.5µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:40 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:40 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:41 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:41 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:42 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:42 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:43 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:43 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:44 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:44 RPC Call ServerID = PONG Func = PING Elapsed = 997.4µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:45 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:45 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:46 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:46 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:47 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:47 RPC Call ServerID = PONG Func = PING Elapsed = 969.8µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:48 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:48 RPC Call ServerID = PONG Func = PING Elapsed = 997.4µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:49 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:49 RPC Call ServerID = PONG Func = PING Elapsed = 997.2µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:50 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:50 RPC Call ServerID = PONG Func = PING Elapsed = 944.9µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:51 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:51 RPC Call ServerID = PONG Func = PING Elapsed = 997.6µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:52 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:52 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:53 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:53 RPC Call ServerID = PONG Func = PING Elapsed = 957.2µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:54 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:54 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:55 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:55 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:56 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:56 RPC Call ServerID = PONG Func = PING Elapsed = 988.9µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:57 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:57 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:58 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:58 RPC Call ServerID = PONG Func = PING Elapsed = 997.9µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:48:59 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:48:59 RPC Call ServerID = PONG Func = PING Elapsed = 998.6µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:00 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:00 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:01 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:01 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:02 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:02 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:03 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:03 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:109]2020/03/16 10:49:11 Registering node:  PING@dca39c2f203f53a2
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:109]2020/03/16 10:49:11 Registering node:  PONG@178ec56becfa0144
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:12 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:12 RPC Call ServerID = PONG Func = PING Elapsed = 997.5µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:13 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:13 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:14 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:14 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:15 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:15 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:16 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:16 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:17 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:17 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:18 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:18 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:19 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:19 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:20 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:20 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:21 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:21 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:22 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:22 RPC Call ServerID = PONG Func = PING Elapsed = 964.9µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:337]2020/03/16 10:49:23 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:49:23 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:171]2020/03/16 10:49:23 RPCServer closeing id(%s) PONG@178ec56becfa0144
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:176]2020/03/16 10:49:23 RPCServer close success id(%s) PONG@178ec56becfa0144
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:171]2020/03/16 10:49:23 RPCServer closeing id(%s) PING@dca39c2f203f53a2
+[ERROR][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\natsServer.go:91]2020/03/16 10:49:23 NatsServer error with '%v' nats: invalid subscription
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:176]2020/03/16 10:49:23 RPCServer close success id(%s) PING@dca39c2f203f53a2
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\source\moduleutil\util.go:160]2020/03/16 10:49:23 mqant closing down (signal: %v) interrupt
+[ERROR][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\natsServer.go:91]2020/03/16 10:49:23 NatsServer error with '%v' nats: invalid subscription
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:109]2020/03/16 10:56:29 Registering node:  PING@5e22951969af8cc0
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:109]2020/03/16 10:56:29 Registering node:  PONG@da55607b3073052a
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:307]2020/03/16 10:56:30 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:56:30 RPC Call ServerID = PONG Func = PING Elapsed = 997.4µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:307]2020/03/16 10:56:31 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:56:31 RPC Call ServerID = PONG Func = PING Elapsed = 976.4µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:307]2020/03/16 10:56:32 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:56:32 RPC Call ServerID = PONG Func = PING Elapsed = 998.5µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:307]2020/03/16 10:56:33 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 10:56:33 RPC Call ServerID = PONG Func = PING Elapsed = 997µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:109]2020/03/16 11:05:34 Registering node:  PING@b4ab024183a52943
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\server\rpcServer.go:109]2020/03/16 11:05:34 Registering node:  PONG@36b0d67374c378b2
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:306]2020/03/16 11:05:35 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 11:05:35 RPC Call ServerID = PONG Func = PING Elapsed = 964.5µs Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:306]2020/03/16 11:05:36 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 11:05:36 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:306]2020/03/16 11:05:37 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 11:05:37 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcServer.go:306]2020/03/16 11:05:38 RPC Exec ModuleType = PONG Func = PING Elapsed = 0s
+[INFO][C:\Users\user\go\src\github.com\shihray\gserver\rpc\base\rpcClient.go:126]2020/03/16 11:05:38 RPC Call ServerID = PONG Func = PING Elapsed = 0s Result = I'm PONG, Return PING ERROR = 

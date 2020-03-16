@@ -1,0 +1,33 @@
+{
+    "Master": {
+      "Enable": false,
+      "MasterType": "Master",
+      "SSH": [],
+      "Process": []
+    },
+    "Module": {
+      "PING": [
+        {
+          "ID": "PING",
+          "ProcessID": "development"
+        }
+      ],
+      "PONG": [
+        {
+          "ID": "PONG",
+          "ProcessID": "development"
+        }
+      ]
+    },
+    "Mqtt": {
+      "WirteLoopChanNum": 10,
+      "ReadPackLoop": 1,
+      "ReadTimeout": 600,
+      "WriteTimeout": 300
+    },
+    "Rpc": {
+      "MaxCoroutine": 10000,
+      "RpcExpired": 1,
+      "LogSuccess": false
+    }
+  }

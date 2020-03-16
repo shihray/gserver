@@ -16,7 +16,7 @@ import (
 
 type NatsClient struct {
 	callinfos         *sync.Map
-	cmutex            sync.Mutex //操作callinfos的鎖
+	cmutex            sync.Mutex
 	callbackQueueName string
 	app               module.App
 	done              chan error
@@ -78,11 +78,11 @@ func (c *NatsClient) Call(callInfo mqrpc.CallInfo, callback chan rpcpb.ResultInf
 		timeout:       callInfo.RpcInfo.Expired,
 	}
 	c.callinfos.Store(correlationID, *clinetCallInfo)
-	_, err := c.Marshal(&callInfo.RpcInfo)
+	body, err := c.Marshal(&callInfo.RpcInfo)
 	if err != nil {
 		return err
 	}
-	return nil
+	return c.app.Transport().Publish(c.session.GetService().Address, body)
 }
 
 // 消息請求 不需要回覆
@@ -112,13 +112,13 @@ func (c *NatsClient) onRequestHandle() error {
 		if err != nil && err == nats.ErrTimeout {
 			continue
 		} else if err != nil {
-			logging.Error("NatsClient error with '%v'", err)
+			logging.Error("NatsClient error with ", err)
 			continue
 		}
 
 		resultInfo, err := c.UnmarshalResult(m.Data)
 		if err != nil {
-			logging.Error("資料解析錯誤 %s", err)
+			logging.Error("資料解析錯誤 ", err)
 		} else {
 			correlationID := resultInfo.Cid
 			clinetCallInfo, _ := c.callinfos.Load(correlationID)
@@ -128,7 +128,7 @@ func (c *NatsClient) onRequestHandle() error {
 				clinetCallInfo.(ClinetCallInfo).call <- *resultInfo
 				c.CloseFch(clinetCallInfo.(ClinetCallInfo).call)
 			} else {
-				logging.Warn("可能客戶端已超時了，但服務端處理完還給回調了 : [%s]", correlationID)
+				logging.Warn(fmt.Sprintf("可能客戶端已超時了，但服務端處理完還給回調了 : [%s]", correlationID))
 			}
 		}
 	}

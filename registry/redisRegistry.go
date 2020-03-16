@@ -65,20 +65,36 @@ func newRedisRegistry(opts ...Option) Registry {
 		opts:     Options{},
 		register: make(map[string]uint64),
 	}
+	for _, o := range opts {
+		o(&cr.opts)
+	}
+
+	redisConn, connErr := RedisUtil.AddConnect("RedisRegistry")
+	if connErr != nil {
+		msg := "redis 連線錯誤,func: Register, 取得連線失敗 "
+		Logging.Error(msg + connErr.Error())
+	} else {
+		redisConn = redisConn
+	}
+	defer redisConn.Close()
+
+	keyList, err := redis.Strings(redisConn.Do("Keys", RegistRedisKey.Addr("*")))
+	if err != nil && err != redis.ErrNil {
+		msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
+		Logging.Error(msg + err.Error())
+		return nil
+	}
+	for _, key := range keyList {
+		redisConn.Do("DEL", key)
+	}
+
 	return cr
 }
 
 func (c *redisRegistry) Deregister(s *Service) error {
 	// delete the service
-	redisConn, connErr := RedisUtil.AddConnect("RedisRegistry")
-	if connErr != nil {
-		msg := "redis 連線錯誤,func: Deregister, 取得連線失敗 "
-		Logging.Error(msg + connErr.Error())
-		return connErr
-	}
-	defer redisConn.Close()
-
-	_, err := redisConn.Do("SREM", RegistRedisKey.Addr(s.Name), s.Address)
+	redisConnection := c.ConnectRedis()
+	_, err := redisConnection.Do("SREM", RegistRedisKey.Addr(s.Name), s.Address)
 	if err != nil && err != redis.ErrNil {
 		msg := "redis KEYS Error, func: Deregister, 取得Redis資料Key錯誤 "
 		Logging.Error(msg + err.Error())
@@ -109,16 +125,8 @@ func (c *redisRegistry) Register(s *Service, opts ...RegisterOption) error {
 		return nil
 	}
 	// register the service
-	// 發送註冊消息至Redis
-	redisConn, connErr := RedisUtil.AddConnect("RedisRegistry")
-	if connErr != nil {
-		msg := "redis 連線錯誤,func: Register, 取得連線失敗 "
-		Logging.Error(msg + connErr.Error())
-		return connErr
-	}
-	defer redisConn.Close()
-
-	_, err = redisConn.Do("SADD", RegistRedisKey.Addr(s.Name), s.Address)
+	redisConnection := c.ConnectRedis()
+	_, err = redisConnection.Do("SADD", RegistRedisKey.Addr(s.Name), s.Address)
 	if err != nil && err != redis.ErrNil {
 		msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
 		Logging.Error(msg + err.Error())
@@ -134,7 +142,8 @@ func (c *redisRegistry) Register(s *Service, opts ...RegisterOption) error {
 }
 
 func (c *redisRegistry) GetService(name string) ([]*Service, error) {
-	data, err := redis.Strings(c.opts.RedisConn.Do("SMEMBERS", RegistRedisKey.Addr(name)))
+	redisConnection := c.ConnectRedis()
+	data, err := redis.Strings(redisConnection.Do("SMEMBERS", RegistRedisKey.Addr(name)))
 	if err != nil && err != redis.ErrNil {
 		msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
 		Logging.Error(msg + err.Error())
@@ -175,4 +184,14 @@ func (c *redisRegistry) String() string {
 
 func (c *redisRegistry) Options() Options {
 	return c.opts
+}
+
+func (c *redisRegistry) ConnectRedis() redis.Conn {
+	redisConn, connErr := RedisUtil.AddConnect("RedisRegistry")
+	if connErr != nil {
+		msg := "redis 連線錯誤,func: Register, 取得連線失敗 "
+		Logging.Error(msg + connErr.Error())
+		return nil
+	}
+	return redisConn
 }

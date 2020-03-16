@@ -22,12 +22,12 @@ type RPCServer struct {
 	app          module.App
 	functions    map[string]*mqrpc.FunctionInfo
 	natsServer   *NatsServer
-	mq_chan      chan mqrpc.CallInfo //接收到請求信息的隊列
-	wg           sync.WaitGroup      //任務阻塞
+	mqChan       chan mqrpc.CallInfo // 接收到請求信息的隊列
+	wg           sync.WaitGroup      // 任務阻塞
 	callChanDone chan error
 	listener     mqrpc.RPCListener
-	control      mqrpc.GoroutineControl //控制模塊可同時開啟的最大協程數
-	executing    int64                  //正在執行的goroutine數量
+	control      mqrpc.GoroutineControl // 控制模塊可同時開啟的最大協程數
+	executing    int64                  // 正在執行的goroutine數量
 }
 
 func NewRPCServer(app module.App, module module.Module) (mqrpc.RPCServer, error) {
@@ -36,19 +36,19 @@ func NewRPCServer(app module.App, module module.Module) (mqrpc.RPCServer, error)
 	rpcServer.module = module
 	rpcServer.callChanDone = make(chan error)
 	rpcServer.functions = make(map[string]*mqrpc.FunctionInfo)
-	rpcServer.mq_chan = make(chan mqrpc.CallInfo)
+	rpcServer.mqChan = make(chan mqrpc.CallInfo)
 
 	natsServer, err := NewNatsServer(app, rpcServer)
 	if err != nil {
-		logging.Error("AMQPServer Dial: %s", err)
+		logging.Error("Nats RPC Server Create Dial Error: ", err)
 	}
 	rpcServer.natsServer = natsServer
 
 	return rpcServer, nil
 }
 
-func (this *RPCServer) Addr() string {
-	return this.natsServer.Addr()
+func (s *RPCServer) Addr() string {
+	return s.natsServer.Addr()
 }
 
 func (s *RPCServer) SetListener(listener mqrpc.RPCListener) {
@@ -107,45 +107,16 @@ func (s *RPCServer) Call(callInfo mqrpc.CallInfo) error {
 	return nil
 }
 
-/**
-接收請求信息
-*/
-func (s *RPCServer) on_call_handle(calls <-chan mqrpc.CallInfo, done chan error) {
-	for {
-		select {
-		case callInfo, ok := <-calls:
-			if !ok {
-				goto ForEnd
-			} else {
-				if callInfo.RpcInfo.Expired < (time.Now().UnixNano() / utils.Nano2Millisecond) {
-					//請求超時了,無需再處理
-					if s.listener != nil {
-						s.listener.OnTimeOut(callInfo.RpcInfo.Fn, callInfo.RpcInfo.Expired)
-					} else {
-						logging.Warn("timeout: This is Call", s.module.GetType(), callInfo.RpcInfo.Fn, callInfo.RpcInfo.Expired, time.Now().UnixNano()/utils.Nano2Millisecond)
-					}
-				} else {
-					s.runFunc(callInfo)
-				}
-			}
-		case <-done:
-			goto ForEnd
-		}
-	}
-ForEnd:
-}
-
 func (s *RPCServer) doCallback(callInfo mqrpc.CallInfo) {
 	if callInfo.RpcInfo.Reply {
 		// 需要回覆的才回覆
 		err := callInfo.Agent.(mqrpc.MQServer).Callback(callInfo)
 		if err != nil {
-			logging.Warn("rpc callback erro :\n%s", err.Error())
+			logging.Warn(fmt.Sprintf("rpc callback erro :\n%s", err.Error()))
 		}
 	} else {
-		// 對於不需要回覆的消息,可以判斷一下是否出現錯誤，打印一些警告
 		if callInfo.Result.Error != "" {
-			logging.Warn("rpc callback erro :\n%s", callInfo.Result.Error)
+			logging.Warn(fmt.Sprintf("rpc callback erro :\n%s", callInfo.Result.Error))
 		}
 	}
 	if s.app.Options().ServerRPCHandler != nil {
@@ -157,7 +128,7 @@ func (s *RPCServer) doCallback(callInfo mqrpc.CallInfo) {
 func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 	start := time.Now()
 	iErrorCallback := func(Cid string, Error string) {
-		// 異常日志都應該打印
+		// print all error logs
 		resultInfo := rpcpb.NewResultInfo(Cid, Error, argsutil.NULL, nil)
 		callInfo.Result = *resultInfo
 		callInfo.ExecTime = time.Since(start).Nanoseconds()
@@ -200,7 +171,6 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 			if r := recover(); r != nil {
 				var rn = ""
 				switch r.(type) {
-
 				case string:
 					rn = r.(string)
 				case error:
@@ -256,7 +226,7 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 					in[k] = elemp.Elem()
 				}
 			} else {
-				//不是Marshaler 才嘗試用 argsutil 解析
+				// 不是Marshaler 才嘗試用 argsutil 解析
 				ty, err := argsutil.Bytes2Args(s.app, v, params[k])
 				if err != nil {
 					iErrorCallback(callInfo.RpcInfo.Cid, err.Error())
@@ -273,7 +243,7 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 						elemp := reflect.New(f.Type().In(k))
 						err := json.Unmarshal(v2, elemp.Interface())
 						if err != nil {
-							logging.Error("%v []uint8--> %v error with='%v'", callInfo.RpcInfo.Fn, f.Type().In(k), err)
+							logging.Error(fmt.Sprintf("%v []uint8--> %v error with='%v'", callInfo.RpcInfo.Fn, f.Type().In(k), err))
 							in[k] = reflect.ValueOf(ty)
 						} else {
 							in[k] = elemp.Elem()
@@ -301,7 +271,7 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 		}
 		// prepare out paras
 		if len(out) > 0 {
-			rs = make([]interface{}, len(out), len(out))
+			rs = make([]interface{}, len(out))
 			for i, v := range out {
 				rs[i] = v.Interface()
 			}
@@ -310,7 +280,6 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 		switch e := rs[1].(type) {
 		case string:
 			rerr = e
-			break
 		case error:
 			rerr = e.Error()
 		case nil:
@@ -333,7 +302,8 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 		callInfo.Result = *resultInfo
 		callInfo.ExecTime = time.Since(start).Nanoseconds()
 		s.doCallback(callInfo)
-		logging.Debug("RPC Exec ModuleType = %v Func = %v Elapsed = %v", s.module.GetType(), callInfo.RpcInfo.Fn, time.Since(start))
+		msg := fmt.Sprintf("RPC Exec ModuleType = %v Func = %v Elapsed = %v", s.module.GetType(), callInfo.RpcInfo.Fn, time.Since(start))
+		logging.Info(msg)
 		if s.listener != nil {
 			s.listener.OnComplete(callInfo.RpcInfo.Fn, &callInfo, resultInfo, time.Since(start).Nanoseconds())
 		}

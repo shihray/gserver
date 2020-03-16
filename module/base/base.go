@@ -87,12 +87,29 @@ func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings 
 	//創建一個遠程調用的RPC
 	opts := server.Options{
 		Metadata: map[string]string{},
-		Name:     subclass.GetType(),
-		ID:       utils.GenerateID().String(),
-		Version:  subclass.Version(),
 	}
 	for _, o := range opt {
 		o(&opts)
+	}
+
+	if opts.Registry == nil {
+		opt = append(opt, server.Registry(app.Registry()))
+	}
+
+	if opts.RegisterInterval == 0 {
+		opt = append(opt, server.RegisterInterval(app.Options().RegisterInterval))
+	}
+
+	if opts.RegisterTTL == 0 {
+		opt = append(opt, server.RegisterTTL(app.Options().RegisterTTL))
+	}
+
+	if len(opts.Name) == 0 {
+		opt = append(opt, server.Name(subclass.GetType()))
+	}
+
+	if len(opts.ID) == 0 {
+		opt = append(opt, server.ID(utils.GenerateID().String()))
 	}
 
 	server := server.NewServer(opt...)
@@ -125,6 +142,10 @@ func (m *BaseModule) SetListener(listener mqrpc.RPCListener) {
 
 func (m *BaseModule) GetModuleSettings() *conf.ModuleSettings {
 	return m.settings
+}
+
+func (m *BaseModule) GetRouteServer(id string) (s module.ServerSession, err error) {
+	return m.App.GetRouteServer(id)
 }
 
 func (m *BaseModule) RpcInvoke(moduleType string, ifunc string, params ...interface{}) (result interface{}, err string) {

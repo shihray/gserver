@@ -33,12 +33,12 @@ func TestRPCInfo(t *testing.T) {
 	rpc.Args = [][]byte{[]byte("hello"), []byte("world")}
 	data, err := proto.Marshal(rpc)
 	if err != nil {
-		t.Fatalf("marshaling error: ", err)
+		t.Fatalf("marshaling error: %v", err)
 	} // 进行解码
 	newRPC := &RPCInfo{}
 	err = proto.Unmarshal(data, newRPC)
 	if err != nil {
-		t.Fatalf("unmarshaling error: ", err)
+		t.Fatalf("unmarshaling error: %v", err)
 	} // 测试结果
 	if rpc.ReplyTo != newRPC.GetReplyTo() {
 		t.Fatalf("data mismatch %q != %q", rpc.GetReplyTo(), newRPC.GetReplyTo())
@@ -54,12 +54,12 @@ func TestResultInfo(t *testing.T) {
 	} // 进行编码
 	data, err := proto.Marshal(result)
 	if err != nil {
-		t.Fatalf("marshaling error: ", err)
+		t.Fatalf("marshaling error: %v", err)
 	} // 进行解码
 	newResult := &ResultInfo{}
 	err = proto.Unmarshal(data, newResult)
 	if err != nil {
-		t.Fatalf("unmarshaling error: ", err)
+		t.Fatalf("unmarshaling error: %v", err)
 	} // 测试结果
 	if result.Cid != newResult.GetCid() {
 		t.Fatalf("data mismatch %q != %q", result.GetCid(), newResult.GetCid())

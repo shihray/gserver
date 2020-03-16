@@ -107,4 +107,5 @@ func writeLog(level Level, v ...interface{}) {
 	} else {
 		logger.Fatalln(v...)
 	}
+	fmt.Println(v...)
 }
