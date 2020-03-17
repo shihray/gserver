@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -19,6 +20,7 @@ import (
 	baseModule "github.com/shihray/gserver/module/base"
 	registry "github.com/shihray/gserver/registry"
 	mqrpc "github.com/shihray/gserver/rpc"
+	BaseRPC "github.com/shihray/gserver/rpc/base"
 	conf "github.com/shihray/gserver/utils/conf"
 )
 
@@ -58,11 +60,49 @@ func newOptions(opts ...module.Option) module.Options {
 	}
 
 	if opt.Nats == nil {
-		nc, err := nats.Connect(nats.DefaultURL)
+		size := 10
+		pool, err := BaseRPC.New(nats.DefaultURL, size)
 		if err != nil {
-			logging.Error("Nats 無法取得連線: %s", err.Error())
+			logging.Error("Nats Pool connection Error ", err.Error())
 		}
-		opt.Nats = nc
+
+		var wg sync.WaitGroup
+		//start listeners
+		for i := 0; i < size/2; i++ {
+			subject := "modules_" + strconv.Itoa(i)
+			wg.Add(1)
+			go func(subject string) {
+				defer wg.Done()
+
+				conn, err := pool.Get()
+				if err != nil {
+					logging.Error("Nats Get connection Pool Error ", err.Error())
+				}
+				defer pool.Put(conn)
+
+				subscription, err := conn.SubscribeSync(subject)
+				if err != nil {
+					logging.Error("Nats Get subscription Error ", err.Error())
+				}
+				defer subscription.Unsubscribe()
+
+				msg, err := subscription.NextMsg(20 * time.Second)
+				if err != nil {
+					logging.Error("Error on receive message")
+				}
+				if msg != nil {
+					logging.Error("Received message should be not nil")
+				} else {
+					logging.Error("msg data : ", msg)
+				}
+			}(subject)
+		}
+		//nc, err := nats.Connect(nats.DefaultURL)
+		//if err != nil {
+		//	logging.Error("Nats 無法取得連線: %s", err.Error())
+		//}
+		//opt.Nats = nc
+		opt.NatsPool = pool
 	}
 
 	if *confPath != "" {

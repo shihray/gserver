@@ -3,16 +3,19 @@ package basemodule
 import (
 	"time"
 
-	nats "github.com/nats-io/nats.go"
+	defaultRPC "github.com/shihray/gserver/rpc/base"
+
+	NatsClient "github.com/nats-io/nats.go"
 	"github.com/shihray/gserver/registry"
-	mqrpc "github.com/shihray/gserver/rpc"
+	mqRPC "github.com/shihray/gserver/rpc"
 	rpcpb "github.com/shihray/gserver/rpc/pb"
 )
 
 type Option func(*Options)
 
 type Options struct {
-	Nats             *nats.Conn
+	Nats             *NatsClient.Conn
+	NatsPool         *defaultRPC.Pool
 	Version          string
 	Debug            bool
 	WorkDir          string
@@ -29,7 +32,7 @@ type Options struct {
 
 type ClientRPChandler func(app App, server registry.Service, rpcinfo rpcpb.RPCInfo, result interface{}, err string, exec_time int64)
 
-type ServerRPCHandler func(app App, module Module, callInfo mqrpc.CallInfo)
+type ServerRPCHandler func(app App, module Module, callInfo mqRPC.CallInfo)
 
 func Version(v string) Option {
 	return func(o *Options) {
@@ -61,9 +64,15 @@ func ProcessID(v string) Option {
 	}
 }
 
-func Nats(nc *nats.Conn) Option {
+func Nats(nc *NatsClient.Conn) Option {
 	return func(o *Options) {
 		o.Nats = nc
+	}
+}
+
+func NatsPool(np *defaultRPC.Pool) Option {
+	return func(o *Options) {
+		o.NatsPool = np
 	}
 }
 
