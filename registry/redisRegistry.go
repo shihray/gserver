@@ -29,22 +29,22 @@ func newRedisRegistry(opts ...Option) Registry {
 		o(&cr.opts)
 	}
 
-	redisConn, connErr := cr.ConnectRedis()
-	if connErr != nil {
-		return nil
-	}
-	defer redisConn.Close()
+	//redisConn, connErr := cr.ConnectRedis()
+	//if connErr != nil {
+	//	return nil
+	//}
+	//defer redisConn.Close()
 
-	keyList, err := redis.Strings(redisConn.Do("Keys", RegistRedisKey.Addr("*")))
-	if err != nil && err != redis.ErrNil {
-		msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
-		Logging.Error(msg + err.Error())
-		return nil
-	}
-
-	for _, key := range keyList {
-		redisConn.Do("DEL", key)
-	}
+	//keyList, err := redis.Strings(redisConn.Do("Keys", RegistRedisKey.Addr("*")))
+	//if err != nil && err != redis.ErrNil {
+	//	msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
+	//	Logging.Error(msg + err.Error())
+	//	return nil
+	//}
+	//
+	//for _, key := range keyList {
+	//	redisConn.Do("DEL", key)
+	//}
 
 	return cr
 }
