@@ -1,80 +1,37 @@
 package registry
 
 import (
-	"crypto/tls"
-	"net"
-	"net/http"
-	"runtime"
-	"sync"
-	"time"
-
 	hash "github.com/mitchellh/hashstructure"
+	"sync"
 
 	"github.com/gomodule/redigo/redis"
-	consul "github.com/hashicorp/consul/api"
 	Logging "github.com/shihray/gserver/logging"
-	RedisUtil "github.com/shihray/gserver/source/redisutil"
+	MyRedisUtil "github.com/shihray/gserver/source/redisutil"
 )
 
 type redisRegistry struct {
-	sync.Mutex
-	Address  string
-	Client   *consul.Client
-	opts     Options
-	connect  bool // connect enabled
-	register map[string]uint64
-}
-
-func getDeregisterTTL(t time.Duration) time.Duration {
-	// splay slightly for the watcher?
-	splay := time.Second * 5
-	deregTTL := t + splay
-
-	// consul has a minimum timeout on deregistration of 1 minute.
-	if t < time.Minute {
-		deregTTL = time.Minute + splay
-	}
-
-	return deregTTL
-}
-
-func newTransport(config *tls.Config) *http.Transport {
-	if config == nil {
-		config = &tls.Config{
-			InsecureSkipVerify: true,
-		}
-	}
-
-	t := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		Dial: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).Dial,
-		TLSHandshakeTimeout: 10 * time.Second,
-		TLSClientConfig:     config,
-	}
-	runtime.SetFinalizer(&t, func(tr **http.Transport) {
-		(*tr).CloseIdleConnections()
-	})
-	return t
+	sync.Mutex // Lock
+	Address    string
+	opts       Options
+	connect    bool // connect enabled
+	register   map[string]uint64
 }
 
 func newRedisRegistry(opts ...Option) Registry {
 	cr := &redisRegistry{
-		opts:     Options{},
+		opts: Options{
+			RedisHost:     "192.168.1.133:6379",
+			RedisPassword: "pass.123",
+		},
 		register: make(map[string]uint64),
 	}
 	for _, o := range opts {
 		o(&cr.opts)
 	}
 
-	redisConn, connErr := RedisUtil.AddConnect("RedisRegistry")
+	redisConn, connErr := cr.ConnectRedis()
 	if connErr != nil {
-		msg := "redis 連線錯誤,func: Register, 取得連線失敗 "
-		Logging.Error(msg + connErr.Error())
-	} else {
-		redisConn = redisConn
+		return nil
 	}
 	defer redisConn.Close()
 
@@ -84,6 +41,7 @@ func newRedisRegistry(opts ...Option) Registry {
 		Logging.Error(msg + err.Error())
 		return nil
 	}
+
 	for _, key := range keyList {
 		redisConn.Do("DEL", key)
 	}
@@ -93,8 +51,13 @@ func newRedisRegistry(opts ...Option) Registry {
 
 func (c *redisRegistry) Deregister(s *Service) error {
 	// delete the service
-	redisConnection := c.ConnectRedis()
-	_, err := redisConnection.Do("SREM", RegistRedisKey.Addr(s.Name), s.Address)
+	redisConn, connErr := c.ConnectRedis()
+	if connErr != nil {
+		return connErr
+	}
+	defer redisConn.Close()
+
+	_, err := redisConn.Do("SREM", RegistRedisKey.Addr(s.Name), s.Address)
 	if err != nil && err != redis.ErrNil {
 		msg := "redis KEYS Error, func: Deregister, 取得Redis資料Key錯誤 "
 		Logging.Error(msg + err.Error())
@@ -125,8 +88,13 @@ func (c *redisRegistry) Register(s *Service, opts ...RegisterOption) error {
 		return nil
 	}
 	// register the service
-	redisConnection := c.ConnectRedis()
-	_, err = redisConnection.Do("SADD", RegistRedisKey.Addr(s.Name), s.Address)
+	redisConn, connErr := c.ConnectRedis()
+	if connErr != nil {
+		return connErr
+	}
+	defer redisConn.Close()
+
+	_, err = redisConn.Do("SADD", RegistRedisKey.Addr(s.Name), s.Address)
 	if err != nil && err != redis.ErrNil {
 		msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
 		Logging.Error(msg + err.Error())
@@ -142,8 +110,13 @@ func (c *redisRegistry) Register(s *Service, opts ...RegisterOption) error {
 }
 
 func (c *redisRegistry) GetService(name string) ([]*Service, error) {
-	redisConnection := c.ConnectRedis()
-	data, err := redis.Strings(redisConnection.Do("SMEMBERS", RegistRedisKey.Addr(name)))
+	redisConn, connErr := c.ConnectRedis()
+	if connErr != nil {
+		return nil, connErr
+	}
+	defer redisConn.Close()
+
+	data, err := redis.Strings(redisConn.Do("SMEMBERS", RegistRedisKey.Addr(name)))
 	if err != nil && err != redis.ErrNil {
 		msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
 		Logging.Error(msg + err.Error())
@@ -164,16 +137,16 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 }
 
 func (c *redisRegistry) ListServices() ([]*Service, error) {
-	rsp, _, err := c.Client.Catalog().Services(nil)
-	if err != nil {
-		return nil, err
-	}
+	//rsp, _, err := c.Client.Catalog().Services(nil)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	var services []*Service
 
-	for service := range rsp {
-		services = append(services, &Service{Name: service})
-	}
+	//for service := range rsp {
+	//	services = append(services, &Service{Name: service})
+	//}
 
 	return services, nil
 }
@@ -186,12 +159,12 @@ func (c *redisRegistry) Options() Options {
 	return c.opts
 }
 
-func (c *redisRegistry) ConnectRedis() redis.Conn {
-	redisConn, connErr := RedisUtil.AddConnect("RedisRegistry")
-	if connErr != nil {
-		msg := "redis 連線錯誤,func: Register, 取得連線失敗 "
-		Logging.Error(msg + connErr.Error())
-		return nil
+func (c *redisRegistry) ConnectRedis() (redis.Conn, error) {
+	redisPool, getPoolErr := MyRedisUtil.NewConnect(c.Options().RedisHost, c.Options().RedisPassword)
+	if getPoolErr != nil {
+		msg := "redis 連線錯誤,func: Register, 取得連線池失敗 "
+		Logging.Error(msg + getPoolErr.Error())
+		return nil, getPoolErr
 	}
-	return redisConn
+	return redisPool.Get(), getPoolErr
 }

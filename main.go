@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/nats-io/nats.go"
 	"net/http"
 	_ "net/http/pprof"
-
-	"github.com/nats-io/nats.go"
 
 	_ "github.com/joho/godotenv/autoload"
 

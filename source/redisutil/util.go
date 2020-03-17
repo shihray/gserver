@@ -5,70 +5,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gomodule/redigo/redis"
 	Logging "github.com/shihray/gserver/logging"
-
-	"github.com/BurntSushi/toml"
-	"github.com/garyburd/redigo/redis"
 )
 
-// RedisConf 設定檔全域變數
-var RedisConf Config
-
-// DetailSet 設定檔內容
-type DetailSet struct {
-	IP       string `toml:"ip"`
-	Port     string `toml:"port"`
-	Password string `toml:"password"`
-}
-
-// PublishSet 設定檔內容
-type PublishSet struct {
-	IP      string `toml:"ip"`
-	Port    string `toml:"port"`
-	Channel string `toml:"channel"`
-}
-
-// GetHostString 取得Host連線字串
-func (ds DetailSet) GetHostString() string {
-	return ds.IP + ":" + ds.Port
-}
-
-// GetHostString 取得Host連線字串
-func (ps PublishSet) GetHostString() string {
-	return ps.IP + ":" + ps.Port
-}
-
-// Config 設定檔
-type Config struct {
-	Redis struct {
-		GameRedisMaster DetailSet `toml:"game_redis_master"`
-		GameRedisSlave  DetailSet `toml:"game_redis_slave"`
-		BackendMaster   DetailSet `toml:"backend_master"`
-		BackendSlave    DetailSet `toml:"backend_slave"`
-	} `toml:"redis"`
-	MaxLink struct {
-		Max int `toml:"max"`
-	} `toml:"maxlink"`
-}
-
 // gRedisConnectionPool => key: host ,value: connectionPool
-var gRedisConnectionPool = make(map[string]*redis.Pool, 0)
-
-var mapLock sync.Mutex
-
-// Init 初始化
-func Init(path string) error {
-	if _, err := toml.DecodeFile(path, &RedisConf); err != nil {
-		msg := "Init, 解析Redis設定檔發生錯誤 "
-		Logging.Fatal(msg + err.Error())
-		return errors.New(msg)
-	}
-	return nil
-}
+var (
+	gRedisConnectionPool = make(map[string]*redis.Pool, 0)
+	mapLock              sync.Mutex
+)
 
 // getConnectionPool 取得連線池
 func getConnectionPool(server string, password string) *redis.Pool {
-
 	mapLock.Lock()
 	defer mapLock.Unlock()
 
@@ -104,39 +52,14 @@ func getConnectionPool(server string, password string) *redis.Pool {
 
 }
 
-// AddConnect 建立連線
-func AddConnect(redisName string) (redis.Conn, error) {
-	var (
-		redisHost string
-		pw        string
-	)
-	switch redisName {
-	case "GameRedisMaster":
-		redisHost = RedisConf.Redis.GameRedisMaster.GetHostString()
-		pw = RedisConf.Redis.GameRedisMaster.Password
-	case "GameRedisSlave":
-		redisHost = RedisConf.Redis.GameRedisSlave.GetHostString()
-		pw = RedisConf.Redis.GameRedisSlave.Password
-	case "BackendMaster":
-		redisHost = RedisConf.Redis.BackendMaster.GetHostString()
-		pw = RedisConf.Redis.BackendMaster.Password
-	case "BackendSlave":
-		redisHost = RedisConf.Redis.BackendSlave.GetHostString()
-		pw = RedisConf.Redis.BackendSlave.Password
-	case "RedisRegistry":
-		redisHost = "127.0.0.1:6379"
-		pw = ""
-
-	}
-
+// NewConnect 建立連線
+func NewConnect(redisHost string, password string) (*redis.Pool, error) {
+	//redisHost := "192.168.1.133:6379"
+	//pw := "pass.123"
 	if redisHost == "" {
 		// 一定連不到
-		c, _ := redis.Dial("tcp", "")
-		return c, errors.New("未找到指定的連線目標設定檔")
+		return &redis.Pool{}, errors.New("未找到指定的連線目標設定檔")
 	}
 
-	redisConnPool := getConnectionPool(redisHost, pw)
-
-	redisConn := redisConnPool.Get()
-	return redisConn, nil
+	return getConnectionPool(redisHost, password), nil
 }

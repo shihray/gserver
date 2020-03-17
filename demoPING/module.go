@@ -2,11 +2,14 @@ package ping
 
 import (
 	"fmt"
+	mqrpc "github.com/shihray/gserver/rpc"
 	"time"
 
 	module "github.com/shihray/gserver/module"
 	basemodule "github.com/shihray/gserver/module/base"
 	Conf "github.com/shihray/gserver/utils/conf"
+
+	"github.com/shihray/gserver/utils/enum/moduleType"
 )
 
 var Module = func() module.Module {
@@ -19,9 +22,9 @@ type Ping struct {
 	updateStop bool // 結束更新
 }
 
-// same as config file modules name
+// version
 func (p *Ping) GetType() string {
-	return "PING"
+	return moduleType.Ping.String()
 }
 
 // version
@@ -38,10 +41,17 @@ func (p *Ping) OnInit(app module.App, settings *Conf.ModuleSettings) {
 		return "I'm PING, Return PONG", ""
 	})
 
-	fmt.Println("Ping OnInit...")
+	p.GetServer().Register("HELLO", func(m map[string]interface{}) (string, string) {
+		if name, isExist := m["name"]; isExist {
+			return "Hello" + name.(string), ""
+		}
+		return "Hello you", ""
+	})
 }
 
 func (p *Ping) Run(closeSig chan bool) {
+	st := mqrpc.NewResultInvoke("PING", nil)
+
 	go func() {
 		tickUpdate := time.NewTicker(time.Duration(1) * time.Second)
 		defer func() {
@@ -50,7 +60,7 @@ func (p *Ping) Run(closeSig chan bool) {
 		for !p.updateStop {
 			select {
 			case <-tickUpdate.C:
-				if res, err := p.RpcInvoke("PONG", "PING", nil); err != "" {
+				if res, err := p.RpcInvoke("PONG", st); err != "" {
 					fmt.Println(err)
 				} else {
 					fmt.Println(res)

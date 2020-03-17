@@ -2,6 +2,8 @@ package pong
 
 import (
 	"fmt"
+	mqrpc "github.com/shihray/gserver/rpc"
+	"github.com/shihray/gserver/utils/enum/moduleType"
 
 	module "github.com/shihray/gserver/module"
 	basemodule "github.com/shihray/gserver/module/base"
@@ -18,9 +20,9 @@ type Pong struct {
 	updateStop bool // 結束更新
 }
 
-// same as config file modules name
+// version
 func (p *Pong) GetType() string {
-	return "PONG"
+	return moduleType.Pong.String()
 }
 
 // version
@@ -41,6 +43,15 @@ func (p *Pong) OnInit(app module.App, settings *Conf.ModuleSettings) {
 }
 
 func (p *Pong) Run(closeSig chan bool) {
+	st := mqrpc.NewResultInvoke("HELLO", map[string]interface{}{
+		"name": "123",
+	})
+
+	if res, err := p.RpcInvoke("PING", st); err != "" {
+		fmt.Println(err)
+	} else {
+		fmt.Println(p.GetType(), ":", res)
+	}
 }
 
 func (p *Pong) OnDestroy() {

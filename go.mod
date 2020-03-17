@@ -11,10 +11,8 @@ require (
 	github.com/golang/protobuf v1.3.4
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/gorilla/websocket v1.4.1
-	github.com/hashicorp/consul v1.7.1
 	github.com/hashicorp/consul/api v1.4.0
 	github.com/joho/godotenv v1.3.0
-	github.com/liangdas/mqant v2.0.0+incompatible
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/nats-io/nats-server/v2 v2.1.4 // indirect
 	github.com/nats-io/nats.go v1.9.1
@@ -22,6 +20,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
 	github.com/satori/go.uuid v1.2.0 // indirect
+	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/z9905080/melody v4.0.0+incompatible
 	go.etcd.io/etcd v3.3.18+incompatible // indirect
 	go.uber.org/zap v1.14.0 // indirect

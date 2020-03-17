@@ -35,8 +35,8 @@ func (mer *ModuleManager) RegisterRunMod(mi module.Module) {
 	mer.runMods = append(mer.runMods, md)
 }
 
-func (mer *ModuleManager) Init(app module.App, ProcessID string) {
-	log.Info(fmt.Sprintf("This service ModuleGroup(ProcessID) is [%s]", ProcessID))
+func (mer *ModuleManager) Init(app module.App, processID string) {
+	log.Info(fmt.Sprintf("This service ModuleGroup(ProcessID) is [%s]", processID))
 	mer.app = app
 	mer.CheckModuleSettings() // 配置文件規則檢查
 	for i := 0; i < len(mer.mods); i++ {
@@ -44,7 +44,7 @@ func (mer *ModuleManager) Init(app module.App, ProcessID string) {
 			if mer.mods[i].mi.GetType() == Type {
 				// 匹配
 				for _, setting := range modSettings {
-					if ProcessID == setting.ProcessID {
+					if processID == setting.ProcessID {
 						mer.runMods = append(mer.runMods, mer.mods[i]) // 這裏加入能夠運行的組件
 						mer.mods[i].settings = setting
 					}
@@ -58,8 +58,8 @@ func (mer *ModuleManager) Init(app module.App, ProcessID string) {
 		m := mer.runMods[i]
 		m.mi.OnInit(app, m.settings)
 
-		if app.GetModuleInited() != nil {
-			app.GetModuleInited()(app, m.mi)
+		if app.GetModuleInit() != nil {
+			app.GetModuleInit()(app, m.mi)
 		}
 
 		m.wg.Add(1)

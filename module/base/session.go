@@ -57,15 +57,15 @@ func (c *serverSession) GetApp() module.App {
 /**
 消息请求 需要回复
 */
-func (c *serverSession) Call(ctx context.Context, _func string, params ...interface{}) (interface{}, string) {
-	return c.Rpc.Call(ctx, _func, params...)
+func (c *serverSession) Call(ctx context.Context, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string) {
+	return c.Rpc.Call(ctx, rpcInvokeResult)
 }
 
 /**
 消息请求 不需要回复
 */
-func (c *serverSession) CallNR(_func string, params ...interface{}) (err error) {
-	return c.Rpc.CallNR(_func, params...)
+func (c *serverSession) CallNR(rpcInvokeResult *mqrpc.ResultInvokeST) (err error) {
+	return c.Rpc.CallNR(rpcInvokeResult)
 }
 
 /**

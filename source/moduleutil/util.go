@@ -1,7 +1,6 @@
 package moduleutil
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -31,7 +30,7 @@ type resultInfo struct {
 func newOptions(opts ...module.Option) module.Options {
 	// Parse input parameters
 	confPath := flag.String("conf", "", "Server configuration file path")
-	ProcessID := flag.String("pid", "development", "Server ProcessID?")
+	ProcessID := flag.String("pid", "develop", "Server ProcessID?")
 	flag.Parse()
 
 	var (
@@ -272,33 +271,24 @@ func (mu *ModuleUtil) GetRouteServer(id string) (s module.ServerSession, err err
 	return mu.GetServerByID(id)
 }
 
-func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, ifunc string, params ...interface{}) (result interface{}, err string) {
+func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (result interface{}, err string) {
 	server, e := mu.GetServerByID(moduleID)
 	if e != nil {
 		err = e.Error()
 		return
 	}
-	return server.Call(nil, ifunc, params...)
+	return server.Call(nil, rpcInvokeResult)
 }
 
-func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, ifunc string, params ...interface{}) (err error) {
+func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (err error) {
 	server, err := mu.GetServerByID(moduleID)
 	if err != nil {
 		return
 	}
-	return server.CallNR(ifunc, params...)
+	return server.CallNR(rpcInvokeResult)
 }
 
-func (mu *ModuleUtil) RpcCall(ctx context.Context, moduleID, ifunc string, param mqrpc.ParamOption) (result interface{}, errstr string) {
-	server, err := mu.GetServerByID(moduleID)
-	if err != nil {
-		errstr = err.Error()
-		return
-	}
-	return server.Call(ctx, ifunc, param()...)
-}
-
-func (mu *ModuleUtil) GetModuleInited() func(app module.App, module module.Module) {
+func (mu *ModuleUtil) GetModuleInit() func(app module.App, module module.Module) {
 	return mu.moduleInited
 }
 
@@ -307,13 +297,13 @@ func (mu *ModuleUtil) OnConfigLoaded(ifunc func(app module.App)) error {
 	return nil
 }
 
-func (mu *ModuleUtil) OnModuleInited(ifunc func(app module.App, module module.Module)) error {
-	mu.moduleInited = ifunc
+func (mu *ModuleUtil) OnModuleInit(internalFunc func(app module.App, module module.Module)) error {
+	mu.moduleInited = internalFunc
 	return nil
 }
 
-func (mu *ModuleUtil) OnStartup(ifunc func(app module.App)) error {
-	mu.startup = ifunc
+func (mu *ModuleUtil) OnStartup(internalFunc func(app module.App)) error {
+	mu.startup = internalFunc
 	return nil
 }
 

@@ -18,7 +18,6 @@ type Config struct {
 	Log      map[string]interface{}
 	Rpc      Rpc
 	Module   map[string][]*ModuleSettings
-	Master   Master
 	Settings map[string]interface{}
 }
 
@@ -36,21 +35,6 @@ type ModuleSettings struct {
 	Settings  map[string]interface{}
 }
 
-type Process struct {
-	ProcessID string
-	Host      string
-	Execfile  string                 // 執行文件
-	LogDir    string                 // 日志文件目錄
-	Args      map[string]interface{} // 自定義的參數
-}
-
-type Master struct {
-	Enable  bool
-	WebRoot string
-	WebHost string
-	Process []*Process
-}
-
 // Read config.
 func LoadConfig(Path string) {
 	if err := readFileInto(Path); err != nil {
@@ -58,6 +42,9 @@ func LoadConfig(Path string) {
 	}
 	if Conf.Rpc.MaxCoroutine == 0 {
 		Conf.Rpc.MaxCoroutine = 100
+	}
+	if Conf.Rpc.RpcExpired == 0 {
+		Conf.Rpc.RpcExpired = 1
 	}
 }
 

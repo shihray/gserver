@@ -9,8 +9,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"time"
-
-	"github.com/gomodule/redigo/redis"
 )
 
 type redisKey string
@@ -22,14 +20,19 @@ func (key redisKey) Addr(val string) string {
 	return fmt.Sprintf("%s:%s", key, val)
 }
 
-type Options struct {
-	Addrs     []string
-	Timeout   time.Duration
-	Secure    bool
-	TLSConfig *tls.Config
-	Context   context.Context
+// String return type of String
+func (key redisKey) String() string {
+	return string(key)
+}
 
-	RedisConn redis.Conn
+type Options struct {
+	Addrs         []string
+	Timeout       time.Duration
+	Secure        bool
+	TLSConfig     *tls.Config
+	Context       context.Context
+	RedisHost     string
+	RedisPassword string
 }
 
 type RegisterOptions struct {
@@ -84,8 +87,9 @@ func WatchService(name string) WatchOption {
 	}
 }
 
-func RedisConn(r redis.Conn) Option {
+func RedisConn(host string, password string) Option {
 	return func(o *Options) {
-		o.RedisConn = r
+		o.RedisHost = host
+		o.RedisPassword = password
 	}
 }

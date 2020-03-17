@@ -148,16 +148,12 @@ func (m *BaseModule) GetRouteServer(id string) (s module.ServerSession, err erro
 	return m.App.GetRouteServer(id)
 }
 
-func (m *BaseModule) RpcInvoke(moduleType string, ifunc string, params ...interface{}) (result interface{}, err string) {
-	return m.App.RpcInvoke(m.GetSubclass(), moduleType, ifunc, params...)
+func (m *BaseModule) RpcInvoke(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) (result interface{}, err string) {
+	return m.App.RpcInvoke(m.GetSubclass(), moduleType, rpcInvokeResult)
 }
 
-func (m *BaseModule) RpcInvokeNR(moduleType string, ifunc string, params ...interface{}) (err error) {
-	return m.App.RpcInvokeNR(m.GetSubclass(), moduleType, ifunc, params...)
-}
-
-func (m *BaseModule) RpcCall(ctx context.Context, moduleType, ifunc string, param mqrpc.ParamOption) (interface{}, string) {
-	return m.App.RpcCall(ctx, moduleType, ifunc, param)
+func (m *BaseModule) RpcInvokeNR(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) (err error) {
+	return m.App.RpcInvokeNR(m.GetSubclass(), moduleType, rpcInvokeResult)
 }
 
 func (m *BaseModule) NoFoundFunction(fn string) (*mqrpc.FunctionInfo, error) {

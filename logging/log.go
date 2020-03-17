@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sync"
@@ -95,7 +96,14 @@ func writeLog(level Level, v ...interface{}) {
 
 	_, file, line, ok := runtime.Caller(DefaultCallerDepth)
 	if ok {
-		t, _ := filepath.Abs(file)
+		applicationDir, err := os.Getwd()
+		if err != nil {
+			file, _ := exec.LookPath(os.Args[0])
+			ApplicationPath, _ := filepath.Abs(file)
+			applicationDir, _ = filepath.Split(ApplicationPath)
+		}
+		//t, _ := filepath.Abs(file)
+		t, _ := filepath.Rel(applicationDir, file)
 		logPrefix = fmt.Sprintf("[%s][%s:%d]", levelFlags[level], t, line)
 	} else {
 		logPrefix = fmt.Sprintf("[%s]", levelFlags[level])

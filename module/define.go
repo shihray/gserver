@@ -20,10 +20,8 @@ type ServerSession interface {
 	GetApp() App
 	GetService() *registry.Service
 	SetService(s *registry.Service)
-	Call(ctx context.Context, ifunc string, params ...interface{}) (interface{}, string)
-	CallNR(ifunc string, params ...interface{}) (err error)
-	// CallArgs(ctx context.Context, ifunc string, argsType []string, args [][]byte) (interface{}, string)
-	// CallNRArgs(ifunc string, argsType []string, args [][]byte) (err error)
+	Call(ctx context.Context, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string)
+	CallNR(rpcInvokeResult *mqrpc.ResultInvokeST) (err error)
 }
 
 type Module interface {
@@ -40,10 +38,8 @@ type Module interface {
 type RPCModule interface {
 	Module
 	GetServerID() string //模塊類型
-	RpcInvoke(moduleType string, ifunc string, params ...interface{}) (interface{}, string)
-	RpcInvokeNR(moduleType string, ifunc string, params ...interface{}) error
-	// RpcInvokeArgs(moduleType string, ifunc string, argsType []string, args [][]byte) (interface{}, string)
-	// RpcInvokeNRArgs(moduleType string, ifunc string, argsType []string, args [][]byte) error
+	RpcInvoke(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string)
+	RpcInvokeNR(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) error
 	GetModuleSettings() (settings *conf.ModuleSettings)
 	GetRouteServer(id string) (s ServerSession, err error)
 	GetStatistical() (statistical string, err error)
@@ -63,19 +59,17 @@ type App interface {
 	GetRouteServer(id string) (s ServerSession, err error)
 
 	GetSettings() conf.Config //獲取配置信息
-	RpcInvoke(module RPCModule, moduleID string, ifunc string, params ...interface{}) (interface{}, string)
-	RpcInvokeNR(module RPCModule, moduleID string, ifunc string, params ...interface{}) error
-
-	RpcCall(ctx context.Context, moduleID, ifunc string, param mqrpc.ParamOption) (interface{}, string)
+	RpcInvoke(module RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string)
+	RpcInvokeNR(module RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) error
 
 	AddRPCSerialize(name string, Interface RPCSerialize) error
 
 	GetRPCSerialize() map[string]RPCSerialize
 
-	GetModuleInited() func(app App, module Module)
+	GetModuleInit() func(app App, module Module)
 
 	OnConfigLoaded(func(app App)) error
-	OnModuleInited(func(app App, module Module)) error
+	OnModuleInit(func(app App, module Module)) error
 	OnStartup(func(app App)) error
 
 	SetProtocolMarshal(protocolMarshal func(Result interface{}, Error interface{}) (ProtocolMarshal, string)) error

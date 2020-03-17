@@ -61,8 +61,8 @@ type RPCClient interface {
 	Done() (err error)
 	CallArgs(ctx context.Context, _func string, ArgsType []string, args [][]byte) (interface{}, string)
 	CallNRArgs(_func string, ArgsType []string, args [][]byte) (err error)
-	Call(ctx context.Context, _func string, params ...interface{}) (interface{}, string)
-	CallNR(_func string, params ...interface{}) (err error)
+	Call(ctx context.Context, rpcInvokeResult *ResultInvokeST) (interface{}, string)
+	CallNR(rpcInvokeResult *ResultInvokeST) (err error)
 }
 
 type LocalClient interface {
@@ -86,10 +86,27 @@ type Marshaler interface {
 	String() string
 }
 
-type ParamOption func() []interface{}
+// RPC Invoke Struct
+type ResultInvokeST struct {
+	funcName string        // function name
+	params   []interface{} // params
+}
 
-func Param(params ...interface{}) ParamOption {
-	return func() []interface{} {
-		return params
+// NewResultInvoke Create instance for RPC Invoke
+func NewResultInvoke(funcName string, params ...interface{}) *ResultInvokeST {
+	this := &ResultInvokeST{
+		funcName: funcName,
+		params:   params,
 	}
+	return this
+}
+
+// SetParams Set RPC Invoke Params
+func (res *ResultInvokeST) SetParams(data ...interface{}) {
+	res.params = data
+}
+
+// Get GetRPC Invoke Info
+func (res *ResultInvokeST) Get() (string, []interface{}) {
+	return res.funcName, res.params
 }
