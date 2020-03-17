@@ -21,7 +21,6 @@ require (
 	github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
-	github.com/z9905080/melody v4.0.0+incompatible
 	go.etcd.io/etcd v3.3.18+incompatible // indirect
 	go.uber.org/zap v1.14.0 // indirect
 	google.golang.org/grpc v1.28.0 // indirect
