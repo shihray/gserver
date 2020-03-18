@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"github.com/nats-io/nats.go"
 	ping "github.com/shihray/gserver/demoPING"
 	pong "github.com/shihray/gserver/demoPONG"
+	"log"
 	"net/http"
 	_ "net/http/pprof"
 
@@ -26,7 +26,7 @@ func ListenServe() {
 	go func() {
 		ip := "0.0.0.0:6060"
 		if err := http.ListenAndServe(ip, nil); err != nil {
-			fmt.Printf("start pprof failed on %s\n", ip)
+			log.Printf("start pprof failed on %s\n", ip)
 		}
 	}()
 }
@@ -37,23 +37,26 @@ func main() {
 	// connect to multi servers
 	natsUrl := "nats://127.0.0.1:4222,nats://127.0.0.1:5222,nats://127.0.0.1:6222"
 	//natsUrl := Conf.GetEnv("NatsURL", nats.DefaultURL)
-	nc, err := nats.Connect(natsUrl,
+
+	var opts = []nats.Option{
+		nats.DontRandomize(), // turn off randomizing the server pool.
 		nats.MaxReconnects(10000),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
-			fmt.Printf("Got disconnected! Reason: %q\n", err)
+			log.Printf("Got disconnected! Reason: %q\n", err)
 		}),
 		nats.ReconnectHandler(func(nc *nats.Conn) {
-			fmt.Printf("Got reconnected to %v!\n", nc.ConnectedUrl())
+			log.Printf("Got reconnected to %v!\n", nc.ConnectedUrl())
 		}),
 		nats.ClosedHandler(func(nc *nats.Conn) {
-			fmt.Printf("Connection closed. Reason: %q\n", nc.LastError())
+			log.Printf("Connection closed. Reason: %q\n", nc.LastError())
 		}),
-	)
+	}
+	nc, err := nats.Connect(natsUrl, opts...)
 	if err != nil {
-		fmt.Println("Nats Connect Error ", err.Error())
+		log.Println("Nats Connect Error ", err.Error())
 		return
 	}
-	fmt.Println("Connect to Nats Server... ", nc.ConnectedAddr())
+	log.Println("Connect to Nats Server... ", nc.ConnectedAddr())
 
 	app := CreateApp(
 		Module.Version(version),  // version
@@ -66,7 +69,7 @@ func main() {
 		pong.Module(),
 	)
 	if erro != nil {
-		fmt.Println("App Work[Run] Error", erro.Error())
+		log.Println("App Work[Run] Error", erro.Error())
 		return
 	}
 }
