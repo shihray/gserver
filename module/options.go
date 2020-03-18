@@ -3,8 +3,6 @@ package basemodule
 import (
 	"time"
 
-	defaultRPC "github.com/shihray/gserver/rpc/base"
-
 	NatsClient "github.com/nats-io/nats.go"
 	"github.com/shihray/gserver/registry"
 	mqRPC "github.com/shihray/gserver/rpc"
@@ -15,7 +13,6 @@ type Option func(*Options)
 
 type Options struct {
 	Nats             *NatsClient.Conn
-	NatsPool         *defaultRPC.Pool
 	Version          string
 	Debug            bool
 	WorkDir          string
@@ -70,11 +67,11 @@ func Nats(nc *NatsClient.Conn) Option {
 	}
 }
 
-func NatsPool(np *defaultRPC.Pool) Option {
-	return func(o *Options) {
-		o.NatsPool = np
-	}
-}
+//func NatsPool(np *defaultRPC.Pool) Option {
+//	return func(o *Options) {
+//		o.NatsPool = np
+//	}
+//}
 
 // Registry sets the registry for the service
 // and the underlying components
