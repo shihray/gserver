@@ -2,7 +2,6 @@ package moduleutil
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -28,10 +27,8 @@ type resultInfo struct {
 }
 
 func newOptions(opts ...module.Option) module.Options {
-	// Parse input parameters
-	confPath := flag.String("conf", "", "Server configuration file path")
-	ProcessID := flag.String("pid", "develop", "Server ProcessID?")
-	flag.Parse()
+	confPath := conf.GetEnv("conf", "./conf/config.json")
+	ProcessID := conf.GetEnv("pid", "develop")
 
 	var (
 		applicationDir string = ""
@@ -46,12 +43,13 @@ func newOptions(opts ...module.Option) module.Options {
 
 	opt := module.Options{
 		WorkDir:          applicationDir,                                     // 工作路徑
-		ProcessID:        *ProcessID,                                         // pid
+		ProcessID:        ProcessID,                                          // pid
 		ConfPath:         fmt.Sprintf("%s/conf/config.json", applicationDir), // config file path
 		Registry:         registry.DefaultRegistry,                           // 註冊器
 		RegisterInterval: time.Millisecond * time.Duration(6000),             // 多久註冊一次
 		RegisterTTL:      time.Millisecond * time.Duration(6500),             // 服務器存活時間
 		Debug:            true,                                               // 初始化偵錯模式
+		RoutineCount:     1000,                                               // Register Routine Channel length
 	}
 	for _, o := range opts {
 		o(&opt)
@@ -65,8 +63,8 @@ func newOptions(opts ...module.Option) module.Options {
 		opt.Nats = nc
 	}
 
-	if *confPath != "" {
-		opt.ConfPath = *confPath
+	if confPath != "" {
+		opt.ConfPath = confPath
 	}
 
 	_, err = os.Open(opt.ConfPath)
