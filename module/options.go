@@ -25,6 +25,7 @@ type Options struct {
 	RegisterInterval time.Duration
 	ClientRPChandler ClientRPChandler
 	ServerRPCHandler ServerRPCHandler
+	RoutineCount     int
 }
 
 type ClientRPChandler func(app App, server registry.Service, rpcinfo rpcpb.RPCInfo, result interface{}, err string, exec_time int64)
@@ -85,5 +86,11 @@ func SetClientRPChandler(t ClientRPChandler) Option {
 func SetServerRPCHandler(t ServerRPCHandler) Option {
 	return func(o *Options) {
 		o.ServerRPCHandler = t
+	}
+}
+
+func RoutineCount(num int) Option {
+	return func(o *Options) {
+		o.RoutineCount = num
 	}
 }

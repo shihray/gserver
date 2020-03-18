@@ -15,6 +15,7 @@ type Server interface {
 	OnInit(module module.Module, app module.App, settings *conf.ModuleSettings) error
 	Init(...Option) error
 	SetListener(listener mqrpc.RPCListener)
+	SetGoroutineControl(control mqrpc.GoroutineControl)
 	Register(id string, f interface{})
 	RegisterGO(id string, f interface{})
 	ServiceRegister() error

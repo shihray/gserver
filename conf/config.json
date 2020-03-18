@@ -15,7 +15,7 @@
   },
   "Rpc": {
     "MaxCoroutine": 10000,
-    "RpcExpired": 1,
+    "RpcExpired": 20,
     "LogSuccess": false
   }
 }

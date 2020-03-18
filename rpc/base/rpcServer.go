@@ -161,12 +161,13 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 
 	iRunFunc := func() {
 		s.wg.Add(1)
+
 		s.executing++
 		defer func() {
-			s.wg.Add(-1)
+			s.wg.Done()
 			s.executing--
 			if s.control != nil {
-				s.control.Finish()
+				s.control.Finish(1)
 			}
 			if r := recover(); r != nil {
 				var rn = ""
@@ -285,7 +286,10 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 		case nil:
 			rerr = ""
 		default:
-			iErrorCallback(callInfo.RpcInfo.Cid, fmt.Sprintf("%s rpc func(%s) return error %s\n", s.module.GetType(), callInfo.RpcInfo.Fn, "func(....)(result interface{}, err error)"))
+			iErrorCallback(
+				callInfo.RpcInfo.Cid,
+				fmt.Sprintf("%s rpc func(%s) return error %s\n", s.module.GetType(), callInfo.RpcInfo.Fn, "func(....)(result interface{}, err error)"),
+			)
 			return
 		}
 		argsType, args, err := argsutil.ArgsTypeAnd2Bytes(s.app, rs[0])
@@ -309,10 +313,10 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 		}
 	}
 
-	// 協程數量達到最大限制
 	if s.control != nil {
-		s.control.Wait()
+		s.control.Start(1)
 	}
+
 	if functionInfo.Goroutine {
 		go iRunFunc()
 	} else {

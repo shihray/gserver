@@ -30,16 +30,6 @@ type StatisticalMethod struct {
 	ExecFailure int    // 執行錯誤次數
 }
 
-func LoadStatisticalMethod(j string) map[string]*StatisticalMethod {
-	sm := map[string]*StatisticalMethod{}
-	err := json.Unmarshal([]byte(j), &sm)
-	if err == nil {
-		return sm
-	} else {
-		return nil
-	}
-}
-
 type BaseModule struct {
 	context.Context
 	exit        context.CancelFunc
@@ -49,7 +39,8 @@ type BaseModule struct {
 	service     service.Service
 	listener    mqrpc.RPCListener
 	statistical map[string]*StatisticalMethod //統計
-	rwmutex     sync.RWMutex
+	rwMutex     sync.RWMutex
+	routineLock chan bool
 }
 
 func (m *BaseModule) GetServerID() string {
@@ -112,16 +103,20 @@ func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings 
 		opt = append(opt, server.ID(utils.GenerateID().String()))
 	}
 
-	server := server.NewServer(opt...)
-	server.OnInit(subclass, app, settings)
+	if opts.RoutineCount == 0 {
+		opt = append(opt, server.RoutineCount(app.Options().RoutineCount))
+	}
+
+	rpcServer := server.NewServer(opt...)
+	rpcServer.OnInit(subclass, app, settings)
 	hostname, _ := os.Hostname()
-	server.Options().Metadata["hostname"] = hostname
-	server.Options().Metadata["pid"] = fmt.Sprintf("%v", os.Getpid())
+	rpcServer.Options().Metadata["hostname"] = hostname
+	rpcServer.Options().Metadata["pid"] = fmt.Sprintf("%v", os.Getpid())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	m.exit = cancel
 	m.service = service.NewService(
-		service.Server(server),
+		service.Server(rpcServer),
 		service.RegisterTTL(app.Options().RegisterTTL),
 		service.RegisterInterval(app.Options().RegisterInterval),
 		service.Context(ctx),
@@ -129,6 +124,25 @@ func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings 
 
 	go m.service.Run()
 	m.GetServer().SetListener(m)
+
+	// implement go routine control channel
+	m.routineLock = make(chan bool, app.Options().RoutineCount)
+	m.GetServer().SetGoroutineControl(m)
+}
+
+// Start when create new routine add lock
+func (m *BaseModule) Start(num int) {
+	for i := 0; i < num; i++ {
+		m.routineLock <- true
+	}
+
+}
+
+// Finish pop chan when routine finish
+func (m *BaseModule) Finish(num int) {
+	for i := 0; i < num; i++ {
+		<-m.routineLock
+	}
 }
 
 func (m *BaseModule) OnDestroy() {
@@ -171,7 +185,7 @@ func (m *BaseModule) BeforeHandle(fn string, callInfo *mqrpc.CallInfo) error {
 }
 
 func (m *BaseModule) OnTimeOut(fn string, Expired int64) {
-	m.rwmutex.Lock()
+	m.rwMutex.Lock()
 	if statisticalMethod, ok := m.statistical[fn]; ok {
 		statisticalMethod.ExecTimeout++
 		statisticalMethod.ExecTotal++
@@ -184,14 +198,14 @@ func (m *BaseModule) OnTimeOut(fn string, Expired int64) {
 		}
 		m.statistical[fn] = statisticalMethod
 	}
-	m.rwmutex.Unlock()
+	m.rwMutex.Unlock()
 	if m.listener != nil {
 		m.listener.OnTimeOut(fn, Expired)
 	}
 }
 
 func (m *BaseModule) OnError(fn string, callInfo *mqrpc.CallInfo, err error) {
-	m.rwmutex.Lock()
+	m.rwMutex.Lock()
 	if statisticalMethod, ok := m.statistical[fn]; ok {
 		statisticalMethod.ExecFailure++
 		statisticalMethod.ExecTotal++
@@ -204,7 +218,7 @@ func (m *BaseModule) OnError(fn string, callInfo *mqrpc.CallInfo, err error) {
 		}
 		m.statistical[fn] = statisticalMethod
 	}
-	m.rwmutex.Unlock()
+	m.rwMutex.Unlock()
 	if m.listener != nil {
 		m.listener.OnError(fn, callInfo, err)
 	}
@@ -217,7 +231,7 @@ result		執行結果
 exec_time 	方法執行時間 單位為 Nano 納秒  1000000納秒等於1毫秒
 */
 func (m *BaseModule) OnComplete(fn string, callInfo *mqrpc.CallInfo, result *rpcpb.ResultInfo, exec_time int64) {
-	m.rwmutex.Lock()
+	m.rwMutex.Lock()
 	if statisticalMethod, ok := m.statistical[fn]; ok {
 		statisticalMethod.ExecSuccess++
 		statisticalMethod.ExecTotal++
@@ -238,7 +252,7 @@ func (m *BaseModule) OnComplete(fn string, callInfo *mqrpc.CallInfo, result *rpc
 		}
 		m.statistical[fn] = statisticalMethod
 	}
-	m.rwmutex.Unlock()
+	m.rwMutex.Unlock()
 	if m.listener != nil {
 		m.listener.OnComplete(fn, callInfo, result, exec_time)
 	}
@@ -249,7 +263,7 @@ func (m *BaseModule) GetExecuting() int64 {
 }
 
 func (m *BaseModule) GetStatistical() (statistical string, err error) {
-	m.rwmutex.Lock()
+	m.rwMutex.Lock()
 	//重置
 	now := time.Now().UnixNano()
 	for _, s := range m.statistical {
@@ -259,6 +273,6 @@ func (m *BaseModule) GetStatistical() (statistical string, err error) {
 	if err == nil {
 		statistical = string(b)
 	}
-	m.rwmutex.Unlock()
+	m.rwMutex.Unlock()
 	return
 }

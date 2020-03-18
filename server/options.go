@@ -22,6 +22,8 @@ type Options struct {
 	// Other options for implementations of the interface
 	// can be stored in a context
 	Context context.Context
+
+	RoutineCount int // RPC Server Routine Channel Buffer Length
 }
 
 func newOptions(opt ...Option) Options {
@@ -51,6 +53,10 @@ func newOptions(opt ...Option) Options {
 
 	if opts.Registry == nil {
 		opts.Registry = registry.DefaultRegistry
+	}
+
+	if opts.RoutineCount == 0 {
+		opts.RoutineCount = 100
 	}
 
 	return opts
@@ -119,5 +125,11 @@ func Wait(b bool) Option {
 			o.Context = context.Background()
 		}
 		o.Context = context.WithValue(o.Context, "wait", b)
+	}
+}
+
+func RoutineCount(num int) Option {
+	return func(o *Options) {
+		o.RoutineCount = num
 	}
 }

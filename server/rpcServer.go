@@ -66,6 +66,10 @@ func (s *rpcServer) SetListener(listener mqrpc.RPCListener) {
 	s.server.SetListener(listener)
 }
 
+func (s *rpcServer) SetGoroutineControl(control mqrpc.GoroutineControl) {
+	s.server.SetGoroutineControl(control)
+}
+
 func (s *rpcServer) Register(id string, f interface{}) {
 	if s.server == nil {
 		panic("invalid RPCServer")

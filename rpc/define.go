@@ -43,8 +43,8 @@ type RPCListener interface {
 }
 
 type GoroutineControl interface {
-	Wait() error
-	Finish()
+	Finish(int)
+	Start(int)
 }
 
 type RPCServer interface {

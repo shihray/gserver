@@ -34,7 +34,7 @@ func newRedisRegistry(opts ...Option) Registry {
 	//	return nil
 	//}
 	//defer redisConn.Close()
-
+	//
 	//keyList, err := redis.Strings(redisConn.Do("Keys", RegistRedisKey.Addr("*")))
 	//if err != nil && err != redis.ErrNil {
 	//	msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
@@ -93,6 +93,18 @@ func (c *redisRegistry) Register(s *Service, opts ...RegisterOption) error {
 		return connErr
 	}
 	defer redisConn.Close()
+
+	// 註冊前先刪除同Module Name 的節點
+	keyList, err := redis.Strings(redisConn.Do("Keys", RegistRedisKey.Addr(s.Name)))
+	if err != nil && err != redis.ErrNil {
+		msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
+		Logging.Error(msg + err.Error())
+		return nil
+	}
+
+	for _, key := range keyList {
+		redisConn.Do("DEL", key)
+	}
 
 	_, err = redisConn.Do("SADD", RegistRedisKey.Addr(s.Name), s.Address)
 	if err != nil && err != redis.ErrNil {
