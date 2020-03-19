@@ -3,19 +3,19 @@
     "PING": [
       {
         "ID": "PING",
-        "ProcessID": "develop"
+        "ProcessID": "d1"
       }
     ],
     "PONG": [
       {
         "ID": "PONG",
-        "ProcessID": "develop"
+        "ProcessID": "d2"
       }
     ]
   },
   "Rpc": {
     "MaxCoroutine": 10000,
-    "RpcExpired": 20,
+    "RpcExpired": 3,
     "LogSuccess": false
   }
 }

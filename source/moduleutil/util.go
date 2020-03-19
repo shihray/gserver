@@ -3,6 +3,7 @@ package moduleutil
 import (
 	"encoding/json"
 	"fmt"
+	defaultrpc "github.com/shihray/gserver/rpc/base"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -275,7 +276,11 @@ func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInv
 		err = e.Error()
 		return
 	}
-	return server.Call(nil, rpcInvokeResult)
+	rlt, err := server.Call(nil, rpcInvokeResult)
+	if err == defaultrpc.DeadlineExceeded {
+		mu.serverList.Delete(moduleID)
+	}
+	return rlt, err
 }
 
 func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (err error) {
