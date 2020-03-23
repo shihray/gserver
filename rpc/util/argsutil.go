@@ -2,6 +2,7 @@ package argsutil
 
 import (
 	"fmt"
+	jsoniter "github.com/json-iterator/go"
 	"reflect"
 	"strings"
 
@@ -82,6 +83,13 @@ func ArgsTypeAnd2Bytes(app module.App, arg interface{}) (string, []byte, error) 
 				//如果是nil则直接返回
 				return NULL, nil, nil
 			}
+
+			if b, err := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(arg); err != nil {
+				return "", nil, fmt.Errorf("args [%s] marshal error %v", reflect.TypeOf(arg), err)
+			} else {
+				return Marshal, b, nil
+			}
+
 			if v2, ok := arg.(mqrpc.Marshaler); ok {
 				b, err := v2.Marshal()
 				if err != nil {

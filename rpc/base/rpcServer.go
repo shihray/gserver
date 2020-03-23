@@ -1,8 +1,8 @@
 package defaultrpc
 
 import (
-	"encoding/json"
 	"fmt"
+	jsoniter "github.com/json-iterator/go"
 	"reflect"
 	"runtime"
 	"sync"
@@ -200,6 +200,11 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 				elemp = reflect.New(rv)
 			}
 
+			jsonToolElemp := reflect.New(f.Type().In(k))
+			if err := jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal(params[k], jsonToolElemp.Interface()); err == nil {
+				in[k] = jsonToolElemp.Elem()
+			}
+
 			if pb, ok := elemp.Interface().(mqrpc.Marshaler); ok {
 				err := pb.Unmarshal(params[k])
 				if err != nil {
@@ -242,7 +247,7 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 						in[k] = reflect.ValueOf(ty)
 					} else {
 						elemp := reflect.New(f.Type().In(k))
-						err := json.Unmarshal(v2, elemp.Interface())
+						err := jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal(v2, elemp.Interface())
 						if err != nil {
 							logging.Error(fmt.Sprintf("%v []uint8--> %v error with='%v'", callInfo.RpcInfo.Fn, f.Type().In(k), err))
 							in[k] = reflect.ValueOf(ty)
