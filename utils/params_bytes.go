@@ -15,9 +15,11 @@ package utils
 
 import (
 	"encoding/binary"
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
 	"math"
 )
+
+var gJsonTool = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func BoolToBytes(v bool) []byte {
 	var buf = make([]byte, 1)
@@ -83,25 +85,25 @@ func BytesToFloat64(bytes []byte) float64 {
 }
 
 func MapToBytes(jmap map[string]interface{}) ([]byte, error) {
-	bytes, err := json.Marshal(jmap)
+	bytes, err := gJsonTool.Marshal(jmap)
 	return bytes, err
 }
 
 func BytesToMap(bytes []byte) (map[string]interface{}, error) {
 	v := make(map[string]interface{})
-	err := json.Unmarshal(bytes, &v)
+	err := gJsonTool.Unmarshal(bytes, &v)
 
 	return v, err
 }
 
 func MapToBytesString(jmap map[string]string) ([]byte, error) {
-	bytes, err := json.Marshal(jmap)
+	bytes, err := gJsonTool.Marshal(jmap)
 	return bytes, err
 }
 
 func BytesToMapString(bytes []byte) (map[string]string, error) {
 	v := make(map[string]string)
-	err := json.Unmarshal(bytes, &v)
+	err := gJsonTool.Unmarshal(bytes, &v)
 
 	return v, err
 }
