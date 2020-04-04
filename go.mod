@@ -6,7 +6,7 @@ require (
 	github.com/golang/protobuf v1.3.4
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/gorilla/websocket v1.4.1
-	github.com/hashicorp/consul/api v1.4.0 // indirect
+	github.com/hashicorp/consul/api v1.4.0
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9
 	github.com/mitchellh/hashstructure v1.0.0

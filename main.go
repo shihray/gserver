@@ -4,6 +4,8 @@ import (
 	"github.com/nats-io/nats.go"
 	ping "github.com/shihray/gserver/demoPING"
 	pong "github.com/shihray/gserver/demoPONG"
+	"github.com/shihray/gserver/registry"
+	"github.com/shihray/gserver/utils/conf"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -58,9 +60,18 @@ func main() {
 	}
 	log.Println("Connect to Nats Server... ", nc.ConnectedAddr())
 
+	// consol註冊
+	registersUrl := conf.GetEnv("Registers_Url", "127.0.0.1:8500")
+	rs := registry.NewConsulRegistry(func(op *registry.Options) {
+		op.Addrs = []string{
+			registersUrl,
+		}
+	})
+
 	app := CreateApp(
 		Module.Version(version),  // version
 		Module.Nats(nc),          // nats register
+		Module.Registry(rs),      // consul register
 		Module.RoutineCount(100), // routine size
 	)
 

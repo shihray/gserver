@@ -27,7 +27,11 @@ var (
 	ErrNotFound     = errors.New("not found")
 )
 
-func NewRegistry(opts ...Option) Registry {
+func NewConsulRegistry(opts ...Option) Registry {
+	return newConsulRegistry(opts...)
+}
+
+func NewRedisRegistry(opts ...Option) Registry {
 	return newRedisRegistry(opts...)
 }
 
