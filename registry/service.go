@@ -1,18 +1,13 @@
 package registry
 
-//type Service struct {
-//	Name     string            `json:"name"`
-//	ID       string            `json:"id"`
-//	Address  string            `json:"address"`
-//	Metadata map[string]string `json:"metadata"`
-//}
-
 type Service struct {
 	Name      string            `json:"name"`
 	Version   string            `json:"version"`
 	Metadata  map[string]string `json:"metadata"`
 	Endpoints []*Endpoint       `json:"endpoints"`
 	Nodes     []*Node           `json:"nodes"`
+	ID        string            `json:"id"`
+	Address   string            `json:"address"`
 }
 
 type Node struct {
