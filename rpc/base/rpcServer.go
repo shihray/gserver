@@ -193,19 +193,19 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 		in = make([]reflect.Value, len(params))
 		for k, v := range ArgsType {
 			rv := f.Type().In(k)
-			var elemp reflect.Value
+			var elem reflect.Value
 			if rv.Kind() == reflect.Ptr {
-				elemp = reflect.New(rv.Elem())
+				elem = reflect.New(rv.Elem())
 			} else {
-				elemp = reflect.New(rv)
+				elem = reflect.New(rv)
 			}
 
-			jsonToolElemp := reflect.New(f.Type().In(k))
-			if err := jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal(params[k], jsonToolElemp.Interface()); err == nil {
-				in[k] = jsonToolElemp.Elem()
+			jsonToolElem := reflect.New(f.Type().In(k))
+			if err := jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal(params[k], jsonToolElem.Interface()); err == nil {
+				in[k] = jsonToolElem.Elem()
 			}
 
-			if pb, ok := elemp.Interface().(mqrpc.Marshaler); ok {
+			if pb, ok := elem.Interface().(mqrpc.Marshaler); ok {
 				err := pb.Unmarshal(params[k])
 				if err != nil {
 					iErrorCallback(callInfo.RpcInfo.Cid, err.Error())
@@ -213,12 +213,12 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 				}
 				if rv.Kind() == reflect.Ptr {
 					//接收指針變量的參數
-					in[k] = reflect.ValueOf(elemp.Interface())
+					in[k] = reflect.ValueOf(elem.Interface())
 				} else {
 					//接收值變量
-					in[k] = elemp.Elem()
+					in[k] = elem.Elem()
 				}
-			} else if pb, ok := elemp.Interface().(proto.Message); ok {
+			} else if pb, ok := elem.Interface().(proto.Message); ok {
 				err := proto.Unmarshal(params[k], pb)
 				if err != nil {
 					iErrorCallback(callInfo.RpcInfo.Cid, err.Error())
@@ -226,10 +226,10 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 				}
 				if rv.Kind() == reflect.Ptr {
 					//接收指針變量的參數
-					in[k] = reflect.ValueOf(elemp.Interface())
+					in[k] = reflect.ValueOf(elem.Interface())
 				} else {
 					//接收值變量
-					in[k] = elemp.Elem()
+					in[k] = elem.Elem()
 				}
 			} else {
 				// 不是Marshaler 才嘗試用 argsutil 解析
@@ -246,13 +246,13 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 						//如果ty "繼承" 於接受參數類型
 						in[k] = reflect.ValueOf(ty)
 					} else {
-						elemp := reflect.New(f.Type().In(k))
-						err := jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal(v2, elemp.Interface())
+						elem := reflect.New(f.Type().In(k))
+						err := jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal(v2, elem.Interface())
 						if err != nil {
 							logging.Error(fmt.Sprintf("%v []uint8--> %v error with='%v'", callInfo.RpcInfo.Fn, f.Type().In(k), err))
 							in[k] = reflect.ValueOf(ty)
 						} else {
-							in[k] = elemp.Elem()
+							in[k] = elem.Elem()
 						}
 					}
 				default:
@@ -282,14 +282,14 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 				rs[i] = v.Interface()
 			}
 		}
-		var rerr string
+		var rErr string
 		switch e := rs[1].(type) {
 		case string:
-			rerr = e
+			rErr = e
 		case error:
-			rerr = e.Error()
+			rErr = e.Error()
 		case nil:
-			rerr = ""
+			rErr = ""
 		default:
 			iErrorCallback(
 				callInfo.RpcInfo.Cid,
@@ -304,7 +304,7 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 		}
 		resultInfo := rpcpb.NewResultInfo(
 			callInfo.RpcInfo.Cid,
-			rerr,
+			rErr,
 			argsType,
 			args,
 		)

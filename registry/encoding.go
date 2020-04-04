@@ -117,3 +117,52 @@ func decodeVersion(tags []string) (string, bool) {
 	}
 	return "", false
 }
+
+func encodeEndpoints(en []*Endpoint) []string {
+	var tags []string
+	for _, e := range en {
+		if b, err := json.Marshal(e); err == nil {
+			tags = append(tags, "e-"+encode(b))
+		}
+	}
+	return tags
+}
+
+func decodeEndpoints(tags []string) []*Endpoint {
+	var en []*Endpoint
+
+	// use the first format you find
+	var ver byte
+
+	for _, tag := range tags {
+		if len(tag) == 0 || tag[0] != 'e' {
+			continue
+		}
+
+		// check version
+		if ver > 0 && tag[1] != ver {
+			continue
+		}
+
+		var e *Endpoint
+		var buf []byte
+
+		// Old encoding was plain
+		if tag[1] == '=' {
+			buf = []byte(tag[2:])
+		}
+
+		// New encoding is hex
+		if tag[1] == '-' {
+			buf = decode(tag[2:])
+		}
+
+		if err := json.Unmarshal(buf, &e); err == nil {
+			en = append(en, e)
+		}
+
+		// set version
+		ver = tag[1]
+	}
+	return en
+}

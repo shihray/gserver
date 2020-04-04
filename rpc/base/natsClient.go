@@ -72,12 +72,12 @@ func (c *NatsClient) Call(callInfo mqrpc.CallInfo, callback chan rpcpb.ResultInf
 	callInfo.RpcInfo.ReplyTo = c.callbackQueueName
 	var correlationID = callInfo.RpcInfo.Cid
 
-	clinetCallInfo := &ClinetCallInfo{
+	clientCallInfo := &ClinetCallInfo{
 		correlationID: correlationID,
 		call:          callback,
 		timeout:       callInfo.RpcInfo.Expired,
 	}
-	c.callinfos.Store(correlationID, *clinetCallInfo)
+	c.callinfos.Store(correlationID, *clientCallInfo)
 	body, err := c.Marshal(&callInfo.RpcInfo)
 	if err != nil {
 		return err
@@ -121,12 +121,12 @@ func (c *NatsClient) onRequestHandle() error {
 			logging.Error("資料解析錯誤 ", err)
 		} else {
 			correlationID := resultInfo.Cid
-			clinetCallInfo, _ := c.callinfos.Load(correlationID)
+			clientCallInfo, _ := c.callinfos.Load(correlationID)
 			//刪除
 			c.callinfos.Delete(correlationID)
-			if clinetCallInfo != nil {
-				clinetCallInfo.(ClinetCallInfo).call <- *resultInfo
-				c.CloseFch(clinetCallInfo.(ClinetCallInfo).call)
+			if clientCallInfo != nil {
+				clientCallInfo.(ClinetCallInfo).call <- *resultInfo
+				c.CloseFch(clientCallInfo.(ClinetCallInfo).call)
 			} else {
 				logging.Warn(fmt.Sprintf("可能客戶端已超時了，但服務端處理完還給回調了 : [%s]", correlationID))
 			}
