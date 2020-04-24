@@ -1,7 +1,9 @@
 package registry
 
 import (
+	"fmt"
 	hash "github.com/mitchellh/hashstructure"
+	"strings"
 	"sync"
 
 	"github.com/gomodule/redigo/redis"
@@ -35,7 +37,7 @@ func newRedisRegistry(opts ...Option) Registry {
 	//}
 	//defer redisConn.Close()
 	//
-	//keyList, err := redis.Strings(redisConn.Do("Keys", RegistRedisKey.Addr("*")))
+	//keyList, err := redis.Strings(redisConn.Do("Keys", RegisterRedisKey.Addr("*")))
 	//if err != nil && err != redis.ErrNil {
 	//	msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
 	//	Logging.Error(msg + err.Error())
@@ -57,7 +59,9 @@ func (c *redisRegistry) Deregister(s *Service) error {
 	}
 	defer redisConn.Close()
 
-	_, err := redisConn.Do("SREM", RegistRedisKey.Addr(s.Name), s.Address)
+	redisName := fmt.Sprintf("%v@%v", s.Name, s.Address)
+
+	_, err := redisConn.Do("HDEL", RegisterRedisKey.Addr(s.Name), redisName)
 	if err != nil && err != redis.ErrNil {
 		msg := "redis KEYS Error, func: Deregister, 取得Redis資料Key錯誤 "
 		Logging.Error(msg + err.Error())
@@ -66,7 +70,7 @@ func (c *redisRegistry) Deregister(s *Service) error {
 
 	// delete our hash of the service
 	c.Lock()
-	delete(c.register, s.Name)
+	delete(c.register, redisName)
 	c.Unlock()
 
 	return nil
@@ -94,28 +98,15 @@ func (c *redisRegistry) Register(s *Service, opts ...RegisterOption) error {
 	}
 	defer redisConn.Close()
 
-	// 註冊前先刪除同Module Name 的節點
-	keyList, err := redis.Strings(redisConn.Do("Keys", RegistRedisKey.Addr(s.Name)))
-	if err != nil && err != redis.ErrNil {
+	redisName := fmt.Sprintf("%v@%v", s.Name, s.Address)
+	if _, errOfRedis := redisConn.Do("HSET", RegisterRedisKey.Addr(s.Name), redisName, s.Address); errOfRedis != nil {
 		msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
-		Logging.Error(msg + err.Error())
+		Logging.Error(msg + errOfRedis.Error())
 		return nil
 	}
-
-	for _, key := range keyList {
-		redisConn.Do("DEL", key)
-	}
-
-	_, err = redisConn.Do("SADD", RegistRedisKey.Addr(s.Name), s.Address)
-	if err != nil && err != redis.ErrNil {
-		msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
-		Logging.Error(msg + err.Error())
-		return err
-	}
-
 	// save our hash of the service
 	c.Lock()
-	c.register[s.Name] = h
+	c.register[redisName] = h
 	c.Unlock()
 
 	return nil
@@ -128,18 +119,31 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 	}
 	defer redisConn.Close()
 
-	data, err := redis.Strings(redisConn.Do("SMEMBERS", RegistRedisKey.Addr(name)))
-	if err != nil && err != redis.ErrNil {
-		msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
-		Logging.Error(msg + err.Error())
-		return nil, err
+	var err error
+	hList := make(map[string]string, 0)
+	nameSplit := strings.Split(name, "@")
+	if len(nameSplit) == 1 {
+		hList, err = redis.StringMap(redisConn.Do("HGETALL", RegisterRedisKey.Addr(name)))
+		if err != nil {
+			msg := "redis KEYS Error, func: GetService, 取得Redis資料Key錯誤 "
+			Logging.Error(msg + err.Error())
+			return nil, err
+		}
+	} else {
+		addr, err := redis.String(redisConn.Do("HGET", RegisterRedisKey.Addr(nameSplit[0]), name))
+		if err != nil {
+			msg := "redis KEYS Error, func: GetService, 取得Redis資料Key錯誤 "
+			Logging.Error(msg + err.Error())
+			return nil, err
+		}
+		hList[name] = addr
 	}
 
 	var services []*Service
-	for _, address := range data {
+	for redisName, address := range hList {
 		svc := &Service{
 			Name:    name,
-			ID:      name,
+			ID:      redisName,
 			Address: address,
 		}
 		services = append(services, svc)

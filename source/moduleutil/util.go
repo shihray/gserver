@@ -20,6 +20,7 @@ import (
 	registry "github.com/shihray/gserver/registry"
 	mqrpc "github.com/shihray/gserver/rpc"
 	conf "github.com/shihray/gserver/utils/conf"
+	random "math/rand"
 )
 
 type resultInfo struct {
@@ -217,11 +218,11 @@ func (mu *ModuleUtil) OnDestroy() error {
 func (mu *ModuleUtil) GetServerByID(id string) (module.ServerSession, error) {
 	services, err := mu.opts.Registry.GetService(id)
 	if err != nil {
-		logging.Warn("GetServersByType %v", err)
+		logging.Warn("GetServerByID %v", err)
 	}
 	for _, service := range services {
 		if _, ok := mu.serverList.Load(service.ID); !ok {
-			s, err := baseModule.NewServerSession(mu, id, service)
+			s, err := baseModule.NewServerSession(mu, service.ID, service)
 			if err != nil {
 				logging.Warn("NewServerSession %v", err)
 			} else {
@@ -237,17 +238,17 @@ func (mu *ModuleUtil) GetServerByID(id string) (module.ServerSession, error) {
 	}
 }
 
-func (mu *ModuleUtil) GetServersByType(id string) []module.ServerSession {
+func (mu *ModuleUtil) GetServersByName(name string) ([]module.ServerSession, error) {
 	sessions := make([]module.ServerSession, 0)
-	services, err := mu.opts.Registry.GetService(id)
+	services, err := mu.opts.Registry.GetService(name)
 	if err != nil {
-		logging.Warn("GetServersByType %v", err)
-		return sessions
+		logging.Warn("GetServersByName %v", err)
+		return sessions, err
 	}
 	for _, service := range services {
 		session, ok := mu.serverList.Load(service.ID)
 		if !ok {
-			s, err := baseModule.NewServerSession(mu, id, service)
+			s, err := baseModule.NewServerSession(mu, service.ID, service)
 			if err != nil {
 				logging.Warn("NewServerSession %v", err)
 			} else {
@@ -259,7 +260,7 @@ func (mu *ModuleUtil) GetServersByType(id string) []module.ServerSession {
 			sessions = append(sessions, session.(module.ServerSession))
 		}
 	}
-	return sessions
+	return sessions, nil
 }
 
 func (mu *ModuleUtil) GetRouteServer(id string) (s module.ServerSession, err error) {
@@ -267,15 +268,22 @@ func (mu *ModuleUtil) GetRouteServer(id string) (s module.ServerSession, err err
 		//进行一次路由转换
 		id = mu.mapRoute(mu, id)
 	}
-	return mu.GetServerByID(id)
+	if res, err := mu.GetServersByName(id); err != nil {
+		return nil, err
+	} else {
+		return res[0], nil
+	}
+
 }
 
 func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (result interface{}, err string) {
-	server, e := mu.GetServerByID(moduleID)
+	servers, e := mu.GetServersByName(moduleID)
 	if e != nil {
 		err = e.Error()
 		return
 	}
+	seed := random.Intn(len(servers))
+	server := servers[seed]
 	rlt, err := server.Call(nil, rpcInvokeResult)
 	if err == defaultrpc.DeadlineExceeded {
 		mu.serverList.Delete(moduleID)
@@ -284,7 +292,10 @@ func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInv
 }
 
 func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (err error) {
-	server, err := mu.GetServerByID(moduleID)
+	servers, err := mu.GetServersByName(moduleID)
+	seed := random.Intn(len(servers))
+	server := servers[seed]
+
 	if err != nil {
 		return
 	}
