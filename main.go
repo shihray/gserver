@@ -37,8 +37,8 @@ func main() {
 	ListenServe()
 	// nats setting
 	// connect to multi servers
-	//natsUrl := "nats://127.0.0.1:4222,nats://127.0.0.1:5222,nats://127.0.0.1:6222"
-	natsUrl := CommonConf.GetEnv("NatsURL", nats.DefaultURL)
+	natsUrl := "nats://127.0.0.1:14222,nats://127.0.0.1:16222,nats://127.0.0.1:18222"
+	//natsUrl := CommonConf.GetEnv("NatsURL", nats.DefaultURL)
 
 	var opts = []nats.Option{
 		nats.DontRandomize(), // turn off randomizing the server pool.
@@ -73,17 +73,17 @@ func main() {
 	} else {
 		// redis ModuleRegistry 註冊
 		rsRedis := ModuleRegistry.NewRedisRegistry(func(op *ModuleRegistry.Options) {
-			op.RedisHost = "192.168.1.132:6379"
-			op.RedisPassword = "pass.123"
+			op.RedisHost = "localhost:6379"
+			op.RedisPassword = ""
 		})
 		registryOption = Module.Registry(rsRedis)
 	}
-	log.Println(registryOption)
+	//log.Println(registryOption)
 
 	app := CreateApp(
-		Module.Version(version), // version
-		Module.Nats(nc),         // nats
-		//registryOption,           // register
+		Module.Version(version),  // version
+		Module.Nats(nc),          // nats
+		registryOption,           // register
 		Module.RoutineCount(100), // routine size
 	)
 

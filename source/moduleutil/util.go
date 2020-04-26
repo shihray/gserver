@@ -286,7 +286,12 @@ func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInv
 	server := servers[seed]
 	rlt, err := server.Call(nil, rpcInvokeResult)
 	if err == defaultrpc.DeadlineExceeded {
-		mu.serverList.Delete(moduleID)
+		if errOfDeregister := registry.Deregister(server.GetService()); errOfDeregister != nil {
+			fmt.Printf("Deregister Service Error : %v \n", errOfDeregister)
+			err = errOfDeregister.Error()
+			return
+		}
+		mu.serverList.Delete(server.GetID())
 	}
 	return rlt, err
 }

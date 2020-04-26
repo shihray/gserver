@@ -2,13 +2,12 @@ package registry
 
 import (
 	"fmt"
-	hash "github.com/mitchellh/hashstructure"
-	"strings"
-	"sync"
-
 	"github.com/gomodule/redigo/redis"
+	hash "github.com/mitchellh/hashstructure"
 	Logging "github.com/shihray/gserver/logging"
 	MyRedisUtil "github.com/shihray/gserver/source/redisutil"
+	"strings"
+	"sync"
 )
 
 type redisRegistry struct {
@@ -22,8 +21,8 @@ type redisRegistry struct {
 func newRedisRegistry(opts ...Option) Registry {
 	cr := &redisRegistry{
 		opts: Options{
-			RedisHost:     "192.168.1.133:6379",
-			RedisPassword: "pass.123",
+			RedisHost:     "localhost:6379",
+			RedisPassword: "",
 		},
 		register: make(map[string]uint64),
 	}
