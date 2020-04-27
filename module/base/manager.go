@@ -2,7 +2,7 @@ package basemodule
 
 import (
 	"fmt"
-	"github.com/shihray/gserver/logging"
+	logging "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
 	"github.com/shihray/gserver/utils/conf"
 )
@@ -35,7 +35,7 @@ func (mer *ModuleManager) RegisterRunMod(mi module.Module) {
 }
 
 func (mer *ModuleManager) Init(app module.App, processID string) {
-	logging.Error("This service ModuleGroup(ProcessID) is ", processID)
+	logging.Debug("This service ModuleGroup(ProcessID) is %v", processID)
 	mer.app = app
 	mer.CheckModuleSettings() // 配置文件規則檢查
 	for i := 0; i < len(mer.mods); i++ {

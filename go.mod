@@ -3,6 +3,8 @@ module github.com/shihray/gserver
 go 1.13
 
 require (
+	github.com/belogik/goes v0.0.0-20151229125003-e54d722c3aff // indirect
+	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/golang/protobuf v1.3.4
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/gorilla/websocket v1.4.1

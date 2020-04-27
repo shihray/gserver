@@ -3,6 +3,7 @@ package moduleutil
 import (
 	"encoding/json"
 	"fmt"
+	logging "github.com/shihray/gserver/logging"
 	defaultrpc "github.com/shihray/gserver/rpc/base"
 	"os"
 	"os/exec"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/nats-io/nats.go"
 	"github.com/pkg/errors"
-	"github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
 	baseModule "github.com/shihray/gserver/module/base"
 	registry "github.com/shihray/gserver/registry"
@@ -131,6 +131,7 @@ func (mu *ModuleUtil) Run(mods ...module.Module) error {
 
 	conf.LoadConfig(f.Name())
 	mu.OnInit(conf.Conf)
+	logging.InitLog(mu.opts.Debug, mu.opts.ProcessID, mu.opts.LogDir, conf.Conf.Log)
 
 	manager := baseModule.NewModuleManager()
 	// register module to manager
@@ -218,13 +219,13 @@ func (mu *ModuleUtil) OnDestroy() error {
 func (mu *ModuleUtil) GetServerByID(id string) (module.ServerSession, error) {
 	services, err := mu.opts.Registry.GetService(id)
 	if err != nil {
-		logging.Warn("GetServerByID %v", err)
+		logging.Warning("GetServerByID %v", err)
 	}
 	for _, service := range services {
 		if _, ok := mu.serverList.Load(service.ID); !ok {
 			s, err := baseModule.NewServerSession(mu, service.ID, service)
 			if err != nil {
-				logging.Warn("NewServerSession %v", err)
+				logging.Warning("NewServerSession %v", err)
 			} else {
 				s.SetService(service)
 				mu.serverList.Store(service.ID, s)
@@ -242,7 +243,7 @@ func (mu *ModuleUtil) GetServersByName(name string) ([]module.ServerSession, err
 	sessions := make([]module.ServerSession, 0)
 	services, err := mu.opts.Registry.GetService(name)
 	if err != nil {
-		logging.Warn("GetServersByName %v", err)
+		logging.Warning("GetServersByName %v", err)
 		return sessions, err
 	}
 	for _, service := range services {
@@ -250,7 +251,7 @@ func (mu *ModuleUtil) GetServersByName(name string) ([]module.ServerSession, err
 		if !ok {
 			s, err := baseModule.NewServerSession(mu, service.ID, service)
 			if err != nil {
-				logging.Warn("NewServerSession %v", err)
+				logging.Warning("NewServerSession %v", err)
 			} else {
 				mu.serverList.Store(service.ID, s)
 				sessions = append(sessions, s)
@@ -263,12 +264,12 @@ func (mu *ModuleUtil) GetServersByName(name string) ([]module.ServerSession, err
 	return sessions, nil
 }
 
-func (mu *ModuleUtil) GetRouteServer(id string) (s module.ServerSession, err error) {
+func (mu *ModuleUtil) GetRouteServer(name string) (s module.ServerSession, err error) {
 	if mu.mapRoute != nil {
 		//进行一次路由转换
-		id = mu.mapRoute(mu, id)
+		name = mu.mapRoute(mu, name)
 	}
-	if res, err := mu.GetServersByName(id); err != nil {
+	if res, err := mu.GetServersByName(name); err != nil {
 		return nil, err
 	} else {
 		return res[0], nil

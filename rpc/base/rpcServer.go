@@ -112,11 +112,11 @@ func (s *RPCServer) doCallback(callInfo mqrpc.CallInfo) {
 		// 需要回覆的才回覆
 		err := callInfo.Agent.(mqrpc.MQServer).Callback(callInfo)
 		if err != nil {
-			logging.Warn(fmt.Sprintf("rpc callback erro :\n%s", err.Error()))
+			logging.Warning(fmt.Sprintf("rpc callback erro :\n%s", err.Error()))
 		}
 	} else {
 		if callInfo.Result.Error != "" {
-			logging.Warn(fmt.Sprintf("rpc callback erro :\n%s", callInfo.Result.Error))
+			logging.Warning(fmt.Sprintf("rpc callback erro :\n%s", callInfo.Result.Error))
 		}
 	}
 	if s.app.Options().ServerRPCHandler != nil {
@@ -312,7 +312,7 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 		callInfo.ExecTime = time.Since(start).Nanoseconds()
 		s.doCallback(callInfo)
 		msg := fmt.Sprintf("RPC Exec ModuleType = %v Func = %v Elapsed = %v", s.module.GetType(), callInfo.RpcInfo.Fn, time.Since(start))
-		logging.Info(msg)
+		logging.Debug(msg)
 		if s.listener != nil {
 			s.listener.OnComplete(callInfo.RpcInfo.Fn, &callInfo, resultInfo, time.Since(start).Nanoseconds())
 		}

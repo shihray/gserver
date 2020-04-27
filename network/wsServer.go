@@ -20,7 +20,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shihray/gserver/logging"
+	logging "github.com/shihray/gserver/logging"
 
 	"github.com/gorilla/websocket"
 )

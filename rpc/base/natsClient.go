@@ -128,7 +128,7 @@ func (c *NatsClient) onRequestHandle() error {
 				clientCallInfo.(ClinetCallInfo).call <- *resultInfo
 				c.CloseFch(clientCallInfo.(ClinetCallInfo).call)
 			} else {
-				logging.Warn(fmt.Sprintf("可能客戶端已超時了，但服務端處理完還給回調了 : [%s]", correlationID))
+				logging.Warning(fmt.Sprintf("可能客戶端已超時了，但服務端處理完還給回調了 : [%s]", correlationID))
 			}
 		}
 	}

@@ -1,4 +1,10 @@
 {
+  "Log":{
+    "file":{
+      "daily" : true,
+      "level" : 6
+    }
+  },
   "Module": {
     "PING": [
       {

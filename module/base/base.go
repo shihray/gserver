@@ -158,8 +158,8 @@ func (m *BaseModule) GetModuleSettings() *conf.ModuleSettings {
 	return m.settings
 }
 
-func (m *BaseModule) GetRouteServer(id string) (s module.ServerSession, err error) {
-	return m.App.GetRouteServer(id)
+func (m *BaseModule) GetRouteServer(name string) (s module.ServerSession, err error) {
+	return m.App.GetRouteServer(name)
 }
 
 func (m *BaseModule) RpcInvoke(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) (result interface{}, err string) {

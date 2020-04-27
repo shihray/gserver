@@ -5,12 +5,12 @@ import (
 	"sync"
 
 	module "github.com/shihray/gserver/module"
-	registry "github.com/shihray/gserver/registry"
+	ModuleRegistry "github.com/shihray/gserver/registry"
 	mqrpc "github.com/shihray/gserver/rpc"
-	defaultrpc "github.com/shihray/gserver/rpc/base"
-	conf "github.com/shihray/gserver/utils/conf"
+	defaultRPC "github.com/shihray/gserver/rpc/base"
+	CommonConf "github.com/shihray/gserver/utils/conf"
 
-	"github.com/shihray/gserver/logging"
+	logging "github.com/shihray/gserver/logging"
 	"github.com/shihray/gserver/utils/addr"
 )
 
@@ -49,10 +49,10 @@ func (s *rpcServer) Init(opts ...Option) error {
 	return nil
 }
 
-func (s *rpcServer) OnInit(module module.Module, app module.App, settings *conf.ModuleSettings) error {
-	server, err := defaultrpc.NewRPCServer(app, module) //默認會創建一個本地的RPC
+func (s *rpcServer) OnInit(module module.Module, app module.App, settings *CommonConf.ModuleSettings) error {
+	server, err := defaultRPC.NewRPCServer(app, module) //默認會創建一個本地的RPC
 	if err != nil {
-		logging.Warn("Dial: %s", err)
+		logging.Warning("Dial: %s", err)
 	}
 	s.server = server
 	s.opts.Address = server.Addr()
@@ -95,7 +95,7 @@ func (s *rpcServer) ServiceRegister() error {
 	}
 
 	// register service
-	service := &registry.Service{
+	service := &ModuleRegistry.Service{
 		Name:     config.Name,
 		ID:       config.Name + "@" + config.ID,
 		Address:  addr,
@@ -103,7 +103,7 @@ func (s *rpcServer) ServiceRegister() error {
 	}
 	s.id = service.ID
 	service.Metadata["server"] = s.String()
-	service.Metadata["registry"] = config.Registry.String()
+	service.Metadata["ModuleRegistry"] = config.Registry.String()
 
 	s.Lock()
 	registered := s.registered
@@ -113,9 +113,9 @@ func (s *rpcServer) ServiceRegister() error {
 		logging.Info("Registering node: ", service.ID)
 	}
 
-	// create registry options
-	rOpts := []registry.RegisterOption{
-		registry.RegisterTTL(config.RegisterTTL),
+	// create ModuleRegistry options
+	rOpts := []ModuleRegistry.RegisterOption{
+		ModuleRegistry.RegisterTTL(config.RegisterTTL),
 	}
 
 	if err := config.Registry.Register(service, rOpts...); err != nil {
@@ -146,7 +146,7 @@ func (s *rpcServer) ServiceDeregister() error {
 	fmt.Printf("addr: %s\n", addr)
 
 	// register service
-	service := &registry.Service{
+	service := &ModuleRegistry.Service{
 		Name:    config.Name,
 		ID:      config.Name + "@" + config.ID,
 		Address: addr,
@@ -175,7 +175,7 @@ func (s *rpcServer) Stop() error {
 		logging.Info("RPCServer closeing id(%s)", s.id)
 		err := s.server.Done()
 		if err != nil {
-			logging.Warn("RPCServer close fail id(%s) error(%s)", s.id, err)
+			logging.Warning("RPCServer close fail id(%s) error(%s)", s.id, err)
 		} else {
 			logging.Info("RPCServer close success id(%s)", s.id)
 		}

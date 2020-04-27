@@ -56,7 +56,7 @@ type App interface {
 	Transport() *nats.Conn
 	Registry() registry.Registry
 	GetServerByID(id string) (ServerSession, error)
-	GetRouteServer(id string) (s ServerSession, err error)
+	GetRouteServer(name string) (s ServerSession, err error)
 
 	GetSettings() conf.Config //獲取配置信息
 	RpcInvoke(module RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string)

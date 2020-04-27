@@ -1,19 +1,17 @@
 package main
 
 import (
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/nats-io/nats.go"
 	ping "github.com/shihray/gserver/demoPING"
 	pong "github.com/shihray/gserver/demoPONG"
+	Module "github.com/shihray/gserver/module"
 	ModuleRegistry "github.com/shihray/gserver/registry"
+	moduleUtil "github.com/shihray/gserver/source/moduleutil"
 	CommonConf "github.com/shihray/gserver/utils/conf"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
-
-	_ "github.com/joho/godotenv/autoload"
-
-	Module "github.com/shihray/gserver/module"
-	moduleUtil "github.com/shihray/gserver/source/moduleutil"
 )
 
 const version = "1"
@@ -37,8 +35,8 @@ func main() {
 	ListenServe()
 	// nats setting
 	// connect to multi servers
-	natsUrl := "nats://127.0.0.1:14222,nats://127.0.0.1:16222,nats://127.0.0.1:18222"
-	//natsUrl := CommonConf.GetEnv("NatsURL", nats.DefaultURL)
+	//natsUrl := "nats://127.0.0.1:14222,nats://127.0.0.1:16222,nats://127.0.0.1:18222"
+	natsUrl := CommonConf.GetEnv("NatsURL", nats.DefaultURL)
 
 	var opts = []nats.Option{
 		nats.DontRandomize(), // turn off randomizing the server pool.
