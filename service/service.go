@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shihray/gserver/logging"
+	logging "github.com/shihray/gserver/logging"
 	"github.com/shihray/gserver/server"
 )
 
@@ -38,7 +38,7 @@ func (s *service) run(exit chan bool) {
 		case <-t.C:
 			err := s.opts.Server.ServiceRegister()
 			if err != nil {
-				logging.Warn("service run Server.Register error: ", err)
+				logging.Warning("service run Server.Register error: ", err)
 			}
 		case <-exit:
 			t.Stop()
@@ -71,7 +71,7 @@ func (s *service) Server() server.Server {
 }
 
 func (s *service) String() string {
-	return "mqant"
+	return "gserver"
 }
 
 func (s *service) Start() error {
@@ -99,11 +99,11 @@ func (s *service) Start() error {
 }
 
 func (s *service) Stop() error {
-	var gerr error
+	var gErr error
 
 	for _, fn := range s.opts.BeforeStop {
 		if err := fn(); err != nil {
-			gerr = err
+			gErr = err
 		}
 	}
 
@@ -117,11 +117,11 @@ func (s *service) Stop() error {
 
 	for _, fn := range s.opts.AfterStop {
 		if err := fn(); err != nil {
-			gerr = err
+			gErr = err
 		}
 	}
 
-	return gerr
+	return gErr
 }
 
 func (s *service) Run() error {

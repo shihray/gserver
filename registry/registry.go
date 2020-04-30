@@ -14,6 +14,7 @@ type Registry interface {
 	GetService(string) ([]*Service, error)
 	ListServices() ([]*Service, error)
 	String() string
+	Clean(typeName string) error
 }
 
 type Option func(*Options)
@@ -27,7 +28,11 @@ var (
 	ErrNotFound     = errors.New("not found")
 )
 
-func NewRegistry(opts ...Option) Registry {
+func NewConsulRegistry(opts ...Option) Registry {
+	return newConsulRegistry(opts...)
+}
+
+func NewRedisRegistry(opts ...Option) Registry {
 	return newRedisRegistry(opts...)
 }
 

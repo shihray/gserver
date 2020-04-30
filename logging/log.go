@@ -1,118 +1,101 @@
-package logging
+package log
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
-	"sync"
-	"time"
+	beeGoLog "github.com/shihray/gserver/logging/beego"
 )
 
-// Level Debug的層級編號
-type Level int
+var beego *beeGoLog.BeeLogger
 
-// 參數設定
-var (
-	RWLock             sync.RWMutex
-	F                  *os.File
-	DefaultPrefix      = ""
-	DefaultCallerDepth = 2
-	logger             *log.Logger
-	logPrefix          = ""
-	levelFlags         = []string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
-	currentLevel       = DEBUG
-)
-
-// 層級列表
-const (
-	DEBUG Level = iota
-	INFO
-	WARNING
-	ERROR
-	FATAL
-)
-
-func init() {
-	filePath := getLogFileFullPath()
-	F = openLogFile(filePath)
-	logger = log.New(F, DefaultPrefix, log.LstdFlags)
+func InitLog(debug bool, logDir string, settings map[string]interface{}) {
+	beego = NewBeegoLogger(debug, logDir, settings)
 }
 
-// SetCurrentLevel 設置目前層級 DEBUG < INFO < WARNING < ERROR < FATAL
-// EX : 設置 INFO，DEBUG就不會印出
-func SetCurrentLevel(level Level) {
-	currentLevel = level
+func LogBeego() *beeGoLog.BeeLogger {
+	if beego == nil {
+		beego = beeGoLog.NewLogger()
+	}
+	return beego
 }
 
-// Debug 除錯層級
-func Debug(v ...interface{}) {
-	if currentLevel <= DEBUG {
-		writeLog(DEBUG, v...)
+func CreateTrace(trace, span string) TraceSpan {
+	return &TraceSpanImp{
+		Trace: trace,
+		Span:  span,
 	}
 }
 
-// Info 一般層級
-func Info(v ...interface{}) {
-	if currentLevel <= INFO {
-		writeLog(INFO, v...)
-	}
+func Debug(format string, a ...interface{}) {
+	//gLogger.doPrintf(debugLevel, printDebugLevel, format, a...)
+	LogBeego().Debug(nil, format, a...)
 }
 
-// Warn 警告層級
-func Warn(v ...interface{}) {
-	if currentLevel <= WARNING {
-		writeLog(WARNING, v...)
-	}
+func Info(format string, a ...interface{}) {
+	//gLogger.doPrintf(releaseLevel, printReleaseLevel, format, a...)
+	LogBeego().Info(nil, format, a...)
 }
 
-// Error 錯誤層級
-func Error(v ...interface{}) {
-	if currentLevel <= ERROR {
-		writeLog(ERROR, v...)
-	}
+func Notice(format string, a ...interface{}) {
+	LogBeego().Notice(nil, format, a...)
 }
 
-// Fatal 致命層級
-func Fatal(v ...interface{}) {
-	writeLog(FATAL, v...)
+func Error(format string, a ...interface{}) {
+	//gLogger.doPrintf(errorLevel, printErrorLevel, format, a...)
+	LogBeego().Error(nil, format, a...)
 }
 
-func writeLog(level Level, v ...interface{}) {
+func Warning(format string, a ...interface{}) {
+	//gLogger.doPrintf(fatalLevel, printFatalLevel, format, a...)
+	LogBeego().Warning(nil, format, a...)
+}
 
-	// 加上Lock是為了防止同時寫入時重複開檔
-	RWLock.Lock()
-	defer RWLock.Unlock()
-	NowDate := time.Now().Format(TimeFormat)
-	if CurrentDate != NowDate {
-		CurrentDate = NowDate
-		F.Close()
-		filePath := getLogFileFullPath()
-		F = openLogFile(filePath)
-		logger = log.New(F, DefaultPrefix, log.LstdFlags)
-	}
-
-	_, file, line, ok := runtime.Caller(DefaultCallerDepth)
-	if ok {
-		applicationDir, err := os.Getwd()
-		if err != nil {
-			file, _ := exec.LookPath(os.Args[0])
-			ApplicationPath, _ := filepath.Abs(file)
-			applicationDir, _ = filepath.Split(ApplicationPath)
-		}
-		//t, _ := filepath.Abs(file)
-		t, _ := filepath.Rel(applicationDir, file)
-		logPrefix = fmt.Sprintf("[%s][%s:%d]", levelFlags[level], t, line)
+func TDebug(span TraceSpan, format string, a ...interface{}) {
+	if span != nil {
+		LogBeego().Debug(
+			&beeGoLog.BeegoTraceSpan{
+				Trace: span.TraceId(),
+				Span:  span.SpanId(),
+			}, format, a...)
 	} else {
-		logPrefix = fmt.Sprintf("[%s]", levelFlags[level])
+		LogBeego().Debug(nil, format, a...)
 	}
+}
 
-	logger.SetPrefix(logPrefix)
-	if level != FATAL {
-		logger.Println(v...)
+func TInfo(span TraceSpan, format string, a ...interface{}) {
+	if span != nil {
+		LogBeego().Info(
+			&beeGoLog.BeegoTraceSpan{
+				Trace: span.TraceId(),
+				Span:  span.SpanId(),
+			}, format, a...)
 	} else {
-		logger.Fatalln(v...)
+		LogBeego().Info(nil, format, a...)
 	}
+}
+
+func TError(span TraceSpan, format string, a ...interface{}) {
+	if span != nil {
+		LogBeego().Error(
+			&beeGoLog.BeegoTraceSpan{
+				Trace: span.TraceId(),
+				Span:  span.SpanId(),
+			}, format, a...)
+	} else {
+		LogBeego().Error(nil, format, a...)
+	}
+}
+
+func TWarning(span TraceSpan, format string, a ...interface{}) {
+	if span != nil {
+		LogBeego().Warning(
+			&beeGoLog.BeegoTraceSpan{
+				Trace: span.TraceId(),
+				Span:  span.SpanId(),
+			}, format, a...)
+	} else {
+		LogBeego().Warning(nil, format, a...)
+	}
+}
+
+func Close() {
+	LogBeego().Close()
 }

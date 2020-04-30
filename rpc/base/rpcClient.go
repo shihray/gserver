@@ -122,7 +122,7 @@ func (c *RPCClient) Call(ctx context.Context, rpcInvokeResult *mqrpc.ResultInvok
 	start := time.Now()
 	r, errstr := c.CallArgs(ctx, funcName, argsType, args)
 	msg := fmt.Sprintf("RPC Call ServerID = %v Func = %v Elapsed = %v Result = %v ERROR = %v", c.natsClient.session.GetID(), funcName, time.Since(start), r, errstr)
-	logging.Info(msg)
+	logging.Debug(msg)
 
 	return r, errstr
 }
@@ -143,7 +143,7 @@ func (c *RPCClient) CallNR(rpcInvokeResult *mqrpc.ResultInvokeST) (err error) {
 	start := time.Now()
 	err = c.CallNRArgs(funcName, argsType, args)
 	msg := fmt.Sprintf("RPC Call ServerID = %v Func = %v Elapsed = %v Result = %v ERROR = %v", c.natsClient.session.GetID(), funcName, time.Since(start), err)
-	logging.Info(msg)
+	logging.Debug(msg)
 
 	return err
 }

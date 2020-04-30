@@ -3,23 +3,23 @@ package moduleutil
 import (
 	"encoding/json"
 	"fmt"
-	defaultrpc "github.com/shihray/gserver/rpc/base"
+	"github.com/nats-io/nats.go"
+	"github.com/pkg/errors"
+	logging "github.com/shihray/gserver/logging"
+	module "github.com/shihray/gserver/module"
+	baseModule "github.com/shihray/gserver/module/base"
+	ModuleRegistry "github.com/shihray/gserver/registry"
+	mqRPC "github.com/shihray/gserver/rpc"
+	defaultRPC "github.com/shihray/gserver/rpc/base"
+	CommonConf "github.com/shihray/gserver/utils/conf"
+	random "math/rand"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
-	"time"
-
-	"github.com/nats-io/nats.go"
-	"github.com/pkg/errors"
-	"github.com/shihray/gserver/logging"
-	module "github.com/shihray/gserver/module"
-	baseModule "github.com/shihray/gserver/module/base"
-	registry "github.com/shihray/gserver/registry"
-	mqrpc "github.com/shihray/gserver/rpc"
-	conf "github.com/shihray/gserver/utils/conf"
 )
 
 type resultInfo struct {
@@ -28,9 +28,6 @@ type resultInfo struct {
 }
 
 func newOptions(opts ...module.Option) module.Options {
-	confPath := conf.GetEnv("conf", "./conf/config.json")
-	ProcessID := conf.GetEnv("pid", "develop")
-
 	var (
 		applicationDir string = ""
 		err            error  = nil
@@ -41,16 +38,15 @@ func newOptions(opts ...module.Option) module.Options {
 		ApplicationPath, _ := filepath.Abs(file)
 		applicationDir, _ = filepath.Split(ApplicationPath)
 	}
-
+	confPath := applicationDir + "/conf/config.json"
+	logPath := applicationDir + "/logs"
 	opt := module.Options{
-		WorkDir:          applicationDir,                                     // 工作路徑
-		ProcessID:        ProcessID,                                          // pid
-		ConfPath:         fmt.Sprintf("%s/conf/config.json", applicationDir), // config file path
-		Registry:         registry.DefaultRegistry,                           // 註冊器
-		RegisterInterval: time.Millisecond * time.Duration(6000),             // 多久註冊一次
-		RegisterTTL:      time.Millisecond * time.Duration(6500),             // 服務器存活時間
-		Debug:            true,                                               // 初始化偵錯模式
-		RoutineCount:     1000,                                               // Register Routine Channel length
+		WorkDir:      applicationDir,                 // 工作路徑
+		ConfPath:     confPath,                       // config file path
+		LogDir:       logPath,                        // log file path
+		Registry:     ModuleRegistry.DefaultRegistry, // 註冊器
+		Debug:        true,                           // 初始化偵錯模式
+		RoutineCount: 1000,                           // Register Routine Channel length
 	}
 	for _, o := range opts {
 		o(&opt)
@@ -64,10 +60,6 @@ func newOptions(opts ...module.Option) module.Options {
 		opt.Nats = nc
 	}
 
-	if confPath != "" {
-		opt.ConfPath = confPath
-	}
-
 	_, err = os.Open(opt.ConfPath)
 	if err != nil {
 		panic(fmt.Sprintf("config path error %v", err)) // 文件不存在
@@ -77,17 +69,17 @@ func newOptions(opts ...module.Option) module.Options {
 }
 
 type ModuleUtil struct {
-	version         string
-	settings        conf.Config
-	serverList      sync.Map
-	opts            module.Options
-	rpcSerializes   map[string]module.RPCSerialize
-	mapRoute        func(app module.App, route string) string // 將RPC註冊到router上
-	configLoaded    func(app module.App)
-	startup         func(app module.App)
-	moduleInited    func(app module.App, module module.Module)
-	protocolMarshal func(Result interface{}, Error interface{}) (module.ProtocolMarshal, string)
-	lock            sync.RWMutex
+	version                 string
+	settings                CommonConf.Config
+	serverList              sync.Map
+	opts                    module.Options
+	rpcSerializes           map[string]module.RPCSerialize
+	mapRouteCallback        func(app module.App, route string) string // 將RPC註冊到router上
+	configLoadCallback      func(app module.App)
+	startupCallback         func(app module.App)
+	moduleInitCallback      func(app module.App, module module.Module)
+	protocolMarshalCallback func(Result interface{}, Error interface{}) (module.ProtocolMarshal, string)
+	lock                    sync.RWMutex
 }
 
 func NewApp(opts ...module.Option) module.App {
@@ -99,26 +91,22 @@ func NewApp(opts ...module.Option) module.App {
 	return mu
 }
 
-func (mu *ModuleUtil) OnInit(settings conf.Config) error {
+func (mu *ModuleUtil) OnInit(settings CommonConf.Config) error {
 	mu.lock.Lock()
 	mu.settings = settings
 	mu.lock.Unlock()
 	return nil
 }
 
-func (mu *ModuleUtil) Configure(settings conf.Config) error {
+func (mu *ModuleUtil) Configure(settings CommonConf.Config) error {
 	mu.lock.Lock()
 	mu.settings = settings
 	mu.lock.Unlock()
 	return nil
 }
 
-func (mu *ModuleUtil) GetSettings() conf.Config {
+func (mu *ModuleUtil) GetSettings() CommonConf.Config {
 	return mu.settings
-}
-
-func (mu *ModuleUtil) GetProcessID() string {
-	return mu.opts.ProcessID
 }
 
 func (mu *ModuleUtil) Run(mods ...module.Module) error {
@@ -128,8 +116,9 @@ func (mu *ModuleUtil) Run(mods ...module.Module) error {
 	}
 	fmt.Printf("Server configuration path : %s\n", mu.opts.ConfPath)
 
-	conf.LoadConfig(f.Name())
-	mu.OnInit(conf.Conf)
+	CommonConf.LoadConfig(f.Name())
+	mu.OnInit(CommonConf.Conf)
+	logging.InitLog(mu.opts.Debug, mu.opts.LogDir, CommonConf.Conf.Log)
 
 	manager := baseModule.NewModuleManager()
 	// register module to manager
@@ -138,9 +127,9 @@ func (mu *ModuleUtil) Run(mods ...module.Module) error {
 		manager.Register(mods[i])
 	}
 	mu.OnInit(mu.settings)
-	manager.Init(mu, mu.opts.ProcessID)
-	if mu.startup != nil {
-		mu.startup(mu)
+	manager.Init(mu)
+	if mu.startupCallback != nil {
+		mu.startupCallback(mu)
 	}
 	// close
 	c := make(chan os.Signal, 1)
@@ -155,7 +144,7 @@ func (mu *ModuleUtil) Run(mods ...module.Module) error {
 	}()
 	select {
 	case <-wait:
-		logging.Info("mqant closing down (signal: %v)", sig)
+		logging.Info("gserver closing down (signal: %v)", sig)
 	}
 
 	return nil
@@ -163,7 +152,7 @@ func (mu *ModuleUtil) Run(mods ...module.Module) error {
 
 func (mu *ModuleUtil) SetMapRoute(fn func(app module.App, route string) string) error {
 	mu.lock.Lock()
-	mu.mapRoute = fn
+	mu.mapRouteCallback = fn
 	mu.lock.Unlock()
 	return nil
 }
@@ -185,7 +174,7 @@ func (mu *ModuleUtil) Transport() *nats.Conn {
 }
 
 // 把註銷的服務serverSession刪除
-func (mu *ModuleUtil) Watcher(s *registry.Service) {
+func (mu *ModuleUtil) Watcher(s *ModuleRegistry.Service) {
 	session, ok := mu.serverList.Load(s.ID)
 	if ok && session != nil {
 		session.(module.ServerSession).GetRpc().Done()
@@ -193,7 +182,7 @@ func (mu *ModuleUtil) Watcher(s *registry.Service) {
 	}
 }
 
-func (mu *ModuleUtil) Registry() registry.Registry {
+func (mu *ModuleUtil) Registry() ModuleRegistry.Registry {
 	return mu.opts.Registry
 }
 
@@ -202,10 +191,11 @@ func (mu *ModuleUtil) GetRPCSerialize() map[string]module.RPCSerialize {
 }
 
 // 移除已註銷的服務
-func (mu *ModuleUtil) RemoveSutdownService(s *registry.Service) {
+func (mu *ModuleUtil) RemoveSutDownService(s *ModuleRegistry.Service) {
 	session, ok := mu.serverList.Load(s.ID)
 	if ok && session != nil {
 		session.(module.ServerSession).GetRpc().Done()
+		ModuleRegistry.Deregister(session.(module.ServerSession).GetService())
 		mu.serverList.Delete(s.ID)
 	}
 }
@@ -217,13 +207,13 @@ func (mu *ModuleUtil) OnDestroy() error {
 func (mu *ModuleUtil) GetServerByID(id string) (module.ServerSession, error) {
 	services, err := mu.opts.Registry.GetService(id)
 	if err != nil {
-		logging.Warn("GetServersByType %v", err)
+		logging.Warning("GetServerByID %v", err)
 	}
 	for _, service := range services {
 		if _, ok := mu.serverList.Load(service.ID); !ok {
-			s, err := baseModule.NewServerSession(mu, id, service)
+			s, err := baseModule.NewServerSession(mu, service.ID, service)
 			if err != nil {
-				logging.Warn("NewServerSession %v", err)
+				logging.Warning("NewServerSession %v", err)
 			} else {
 				s.SetService(service)
 				mu.serverList.Store(service.ID, s)
@@ -237,19 +227,19 @@ func (mu *ModuleUtil) GetServerByID(id string) (module.ServerSession, error) {
 	}
 }
 
-func (mu *ModuleUtil) GetServersByType(id string) []module.ServerSession {
+func (mu *ModuleUtil) GetServersByType(typeName string) ([]module.ServerSession, error) {
 	sessions := make([]module.ServerSession, 0)
-	services, err := mu.opts.Registry.GetService(id)
+	services, err := mu.opts.Registry.GetService(typeName)
 	if err != nil {
-		logging.Warn("GetServersByType %v", err)
-		return sessions
+		logging.Warning("GetServersByType %v", err)
+		return sessions, err
 	}
 	for _, service := range services {
 		session, ok := mu.serverList.Load(service.ID)
 		if !ok {
-			s, err := baseModule.NewServerSession(mu, id, service)
+			s, err := baseModule.NewServerSession(mu, service.ID, service)
 			if err != nil {
-				logging.Warn("NewServerSession %v", err)
+				logging.Warning("NewServerSession %v", err)
 			} else {
 				mu.serverList.Store(service.ID, s)
 				sessions = append(sessions, s)
@@ -259,54 +249,84 @@ func (mu *ModuleUtil) GetServersByType(id string) []module.ServerSession {
 			sessions = append(sessions, session.(module.ServerSession))
 		}
 	}
-	return sessions
+	return sessions, nil
 }
 
-func (mu *ModuleUtil) GetRouteServer(id string) (s module.ServerSession, err error) {
-	if mu.mapRoute != nil {
-		//进行一次路由转换
-		id = mu.mapRoute(mu, id)
+func (mu *ModuleUtil) getRouteServer(filter string) (s module.ServerSession, err error) {
+	sl := strings.Split(filter, "@")
+	if len(sl) == 2 {
+		moduleID := sl[1]
+		if moduleID != "" {
+			return mu.GetServerByID(filter)
+		}
 	}
-	return mu.GetServerByID(id)
+	moduleType := sl[0]
+	servers, e := mu.GetServersByType(moduleType)
+	if e != nil {
+		return nil, e
+	}
+	if len(servers) == 0 {
+		return nil, errors.New("servers not found")
+	}
+	// 隨機選擇一組service
+	seed := random.Intn(len(servers))
+	server := servers[seed]
+	return server, nil
 }
 
-func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (result interface{}, err string) {
-	server, e := mu.GetServerByID(moduleID)
+func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInvokeResult *mqRPC.ResultInvokeST) (result interface{}, err string) {
+	server, e := mu.getRouteServer(moduleID)
 	if e != nil {
 		err = e.Error()
 		return
 	}
-	rlt, err := server.Call(nil, rpcInvokeResult)
-	if err == defaultrpc.DeadlineExceeded {
-		mu.serverList.Delete(moduleID)
+	rlt, callServerErr := server.Call(nil, rpcInvokeResult)
+	if callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
+		//mu.RemoveSutDownService(server.GetService())
+		if errOfDeregister := ModuleRegistry.Deregister(server.GetService()); errOfDeregister != nil {
+			fmt.Printf("Deregister Service Error : %v \n", errOfDeregister)
+			err = errOfDeregister.Error()
+			return
+		}
+		mu.serverList.Delete(server.GetID())
 	}
-	return rlt, err
+	return rlt, callServerErr
 }
 
-func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (err error) {
-	server, err := mu.GetServerByID(moduleID)
-	if err != nil {
+func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, rpcInvokeResult *mqRPC.ResultInvokeST) (err error) {
+	server, e := mu.getRouteServer(moduleID)
+	if e != nil {
+		err = e
 		return
 	}
-	return server.CallNR(rpcInvokeResult)
+	if callServerErr := server.CallNR(rpcInvokeResult); callServerErr.Error() == defaultRPC.DeadlineExceeded || callServerErr.Error() == defaultRPC.ClientClose {
+		//mu.RemoveSutDownService(server.GetService())
+		if errOfDeregister := ModuleRegistry.Deregister(server.GetService()); errOfDeregister != nil {
+			fmt.Printf("Deregister Service Error : %v \n", errOfDeregister)
+			err = errOfDeregister
+			return
+		}
+		mu.serverList.Delete(server.GetID())
+	}
+	return
 }
 
 func (mu *ModuleUtil) GetModuleInit() func(app module.App, module module.Module) {
-	return mu.moduleInited
+	return mu.moduleInitCallback
 }
 
-func (mu *ModuleUtil) OnConfigLoaded(ifunc func(app module.App)) error {
-	mu.configLoaded = ifunc
+func (mu *ModuleUtil) OnConfigLoaded(i func(app module.App)) error {
+	mu.configLoadCallback = i
 	return nil
 }
 
 func (mu *ModuleUtil) OnModuleInit(internalFunc func(app module.App, module module.Module)) error {
-	mu.moduleInited = internalFunc
+	mu.moduleInitCallback = internalFunc
 	return nil
 }
 
 func (mu *ModuleUtil) OnStartup(internalFunc func(app module.App)) error {
-	mu.startup = internalFunc
+	mu.startupCallback = internalFunc
 	return nil
 }
 
@@ -320,13 +340,13 @@ func (this *protocolMarshalImp) GetData() []byte {
 }
 
 func (mu *ModuleUtil) SetProtocolMarshal(protocolMarshal func(Result interface{}, Error interface{}) (module.ProtocolMarshal, string)) error {
-	mu.protocolMarshal = protocolMarshal
+	mu.protocolMarshalCallback = protocolMarshal
 	return nil
 }
 
 func (mu *ModuleUtil) ProtocolMarshal(Result interface{}, Error interface{}) (module.ProtocolMarshal, string) {
-	if mu.protocolMarshal != nil {
-		return mu.protocolMarshal(Result, Error)
+	if mu.protocolMarshalCallback != nil {
+		return mu.protocolMarshalCallback(Result, Error)
 	}
 	r := &resultInfo{
 		Error:  Error,

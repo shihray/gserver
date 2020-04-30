@@ -1,7 +1,7 @@
 package pong
 
 import (
-	"fmt"
+	log "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
 	basemodule "github.com/shihray/gserver/module/base"
 	mqrpc "github.com/shihray/gserver/rpc"
@@ -35,22 +35,21 @@ func (p *Pong) OnInit(app module.App, settings *Conf.ModuleSettings) {
 	p.updateStop = false
 
 	p.GetServer().RegisterGO("PING", func(m map[string]interface{}) (string, string) {
+
+		st := mqrpc.NewResultInvoke("HELLO", map[string]interface{}{
+			"name": "123",
+		})
+		if res, err := p.RpcInvoke("PING", st); err != "" {
+			log.Debug(err)
+		} else {
+			log.Debug("%v: %v", p.GetType(), res)
+		}
+
 		return "I'm PONG, Return PING", ""
 	})
-
-	fmt.Println("Pong OnInit...")
 }
 
 func (p *Pong) Run(closeSig chan bool) {
-	st := mqrpc.NewResultInvoke("HELLO", map[string]interface{}{
-		"name": "123",
-	})
-
-	if res, err := p.RpcInvoke("PING", st); err != "" {
-		fmt.Println(err)
-	} else {
-		fmt.Println(p.GetType(), ":", res)
-	}
 }
 
 func (p *Pong) OnDestroy() {

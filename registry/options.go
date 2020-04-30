@@ -13,7 +13,8 @@ import (
 
 type redisKey string
 
-const RegistRedisKey redisKey = "gserver:modules"
+const RegisterRedisKey redisKey = "gserver:modules"
+const ModuleInfoRedisKey redisKey = "gserver:module:info"
 
 // fmt Addr return String
 func (key redisKey) Addr(val string) string {
