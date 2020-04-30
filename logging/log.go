@@ -48,54 +48,6 @@ func Warning(format string, a ...interface{}) {
 	LogBeego().Warning(nil, format, a...)
 }
 
-func TDebug(span TraceSpan, format string, a ...interface{}) {
-	if span != nil {
-		LogBeego().Debug(
-			&beeGoLog.BeegoTraceSpan{
-				Trace: span.TraceId(),
-				Span:  span.SpanId(),
-			}, format, a...)
-	} else {
-		LogBeego().Debug(nil, format, a...)
-	}
-}
-
-func TInfo(span TraceSpan, format string, a ...interface{}) {
-	if span != nil {
-		LogBeego().Info(
-			&beeGoLog.BeegoTraceSpan{
-				Trace: span.TraceId(),
-				Span:  span.SpanId(),
-			}, format, a...)
-	} else {
-		LogBeego().Info(nil, format, a...)
-	}
-}
-
-func TError(span TraceSpan, format string, a ...interface{}) {
-	if span != nil {
-		LogBeego().Error(
-			&beeGoLog.BeegoTraceSpan{
-				Trace: span.TraceId(),
-				Span:  span.SpanId(),
-			}, format, a...)
-	} else {
-		LogBeego().Error(nil, format, a...)
-	}
-}
-
-func TWarning(span TraceSpan, format string, a ...interface{}) {
-	if span != nil {
-		LogBeego().Warning(
-			&beeGoLog.BeegoTraceSpan{
-				Trace: span.TraceId(),
-				Span:  span.SpanId(),
-			}, format, a...)
-	} else {
-		LogBeego().Warning(nil, format, a...)
-	}
-}
-
 func Close() {
 	LogBeego().Close()
 }

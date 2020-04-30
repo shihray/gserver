@@ -1,5 +1,6 @@
 {
   "Log":{
+    "level" : 6,
     "file":{
       "prefix" : "develop",
       "daily" : true,

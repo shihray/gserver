@@ -119,6 +119,11 @@ func (mu *ModuleUtil) Run(mods ...module.Module) error {
 	CommonConf.LoadConfig(f.Name())
 	mu.OnInit(CommonConf.Conf)
 	logging.InitLog(mu.opts.Debug, mu.opts.LogDir, CommonConf.Conf.Log)
+	level := 7
+	if _, ok := CommonConf.Conf.Log["level"]; ok {
+		level = int(CommonConf.Conf.Log["level"].(float64))
+	}
+	logging.LogBeego().SetLevel(level)
 
 	manager := baseModule.NewModuleManager()
 	// register module to manager

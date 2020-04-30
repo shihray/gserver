@@ -27,6 +27,12 @@ type ClientRPChandler func(app App, server registry.Service, rpcinfo rpcPB.RPCIn
 
 type ServerRPCHandler func(app App, module Module, callInfo mqrpc.CallInfo)
 
+func Debug(v bool) Option {
+	return func(o *Options) {
+		o.Debug = v
+	}
+}
+
 func Version(v string) Option {
 	return func(o *Options) {
 		o.Version = v
