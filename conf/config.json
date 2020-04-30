@@ -1,6 +1,7 @@
 {
   "Log":{
     "file":{
+      "prefix" : "develop",
       "daily" : true,
       "level" : 6
     }
@@ -21,7 +22,7 @@
   },
   "Rpc": {
     "MaxCoroutine": 10000,
-    "RpcExpired": 3,
+    "RpcExpired": 1,
     "LogSuccess": false
   }
 }

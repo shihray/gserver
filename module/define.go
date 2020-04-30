@@ -41,7 +41,6 @@ type RPCModule interface {
 	RpcInvoke(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string)
 	RpcInvokeNR(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) error
 	GetModuleSettings() (settings *conf.ModuleSettings)
-	GetRouteServer(id string) (s ServerSession, err error)
 	GetStatistical() (statistical string, err error)
 	GetExecuting() int64
 }
@@ -56,7 +55,7 @@ type App interface {
 	Transport() *nats.Conn
 	Registry() registry.Registry
 	GetServerByID(id string) (ServerSession, error)
-	GetRouteServer(name string) (s ServerSession, err error)
+	GetServersByType(name string) ([]ServerSession, error)
 
 	GetSettings() conf.Config //獲取配置信息
 	RpcInvoke(module RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string)
@@ -75,7 +74,6 @@ type App interface {
 	SetProtocolMarshal(protocolMarshal func(Result interface{}, Error interface{}) (ProtocolMarshal, string)) error
 	ProtocolMarshal(Result interface{}, Error interface{}) (ProtocolMarshal, string) // 與客戶端通信的協議包接口
 	NewProtocolMarshal(data []byte) ProtocolMarshal
-	GetProcessID() string
 }
 
 /**

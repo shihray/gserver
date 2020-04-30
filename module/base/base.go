@@ -4,14 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
+	log "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
 	mqrpc "github.com/shihray/gserver/rpc"
-	rpcpb "github.com/shihray/gserver/rpc/pb"
+	rpcPB "github.com/shihray/gserver/rpc/pb"
 	"github.com/shihray/gserver/server"
 	"github.com/shihray/gserver/service"
 	"github.com/shihray/gserver/utils"
@@ -87,14 +89,6 @@ func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings 
 		opt = append(opt, server.Registry(app.Registry()))
 	}
 
-	if opts.RegisterInterval == 0 {
-		opt = append(opt, server.RegisterInterval(app.Options().RegisterInterval))
-	}
-
-	if opts.RegisterTTL == 0 {
-		opt = append(opt, server.RegisterTTL(app.Options().RegisterTTL))
-	}
-
 	if len(opts.Name) == 0 {
 		opt = append(opt, server.Name(subclass.GetType()))
 	}
@@ -106,19 +100,23 @@ func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings 
 	if opts.RoutineCount == 0 {
 		opt = append(opt, server.RoutineCount(app.Options().RoutineCount))
 	}
+	//
+	m.CheckHeartbeat(subclass.GetType())
 
 	rpcServer := server.NewServer(opt...)
-	rpcServer.OnInit(subclass, app, settings)
+	_ = rpcServer.OnInit(subclass, app, settings)
 	hostname, _ := os.Hostname()
 	rpcServer.Options().Metadata["hostname"] = hostname
 	rpcServer.Options().Metadata["pid"] = fmt.Sprintf("%v", os.Getpid())
+	// heartbeat function
+	rpcServer.Register("HB", func(m map[string]interface{}) (string, string) {
+		return "Done", ""
+	})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	m.exit = cancel
 	m.service = service.NewService(
 		service.Server(rpcServer),
-		service.RegisterTTL(app.Options().RegisterTTL),
-		service.RegisterInterval(app.Options().RegisterInterval),
 		service.Context(ctx),
 	)
 
@@ -158,8 +156,21 @@ func (m *BaseModule) GetModuleSettings() *conf.ModuleSettings {
 	return m.settings
 }
 
-func (m *BaseModule) GetRouteServer(name string) (s module.ServerSession, err error) {
-	return m.App.GetRouteServer(name)
+// GetRandomServiceID 取得隨機 module ID
+func (m *BaseModule) GetRandomServiceID(typeName string) (result string, err error) {
+	services, getServerErr := m.GetServersByType(typeName)
+	if getServerErr != nil {
+		return "", getServerErr
+	}
+	if len(services) == 0 {
+		return "", errors.New("service not found")
+	}
+	index := rand.Intn(len(services))
+	return services[index].GetName(), nil
+}
+
+func (m *BaseModule) GetServersByType(typeName string) (s []module.ServerSession, err error) {
+	return m.App.GetServersByType(typeName)
 }
 
 func (m *BaseModule) RpcInvoke(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) (result interface{}, err string) {
@@ -230,7 +241,7 @@ params		參數
 result		執行結果
 exec_time 	方法執行時間 單位為 Nano 納秒  1000000納秒等於1毫秒
 */
-func (m *BaseModule) OnComplete(fn string, callInfo *mqrpc.CallInfo, result *rpcpb.ResultInfo, exec_time int64) {
+func (m *BaseModule) OnComplete(fn string, callInfo *mqrpc.CallInfo, result *rpcPB.ResultInfo, exec_time int64) {
 	m.rwMutex.Lock()
 	if statisticalMethod, ok := m.statistical[fn]; ok {
 		statisticalMethod.ExecSuccess++
@@ -275,4 +286,18 @@ func (m *BaseModule) GetStatistical() (statistical string, err error) {
 	}
 	m.rwMutex.Unlock()
 	return
+}
+
+// 檢查在線列表心跳
+func (m *BaseModule) CheckHeartbeat(typeName string) {
+	services, err := m.GetServersByType(typeName)
+	if err != nil {
+		log.Debug("GetServersByType Error", err.Error())
+	}
+	for _, session := range services {
+		st := mqrpc.NewResultInvoke("HB", nil)
+		if _, err := m.RpcInvoke(session.GetID(), st); err != "" {
+			log.Debug("Heartbeat Error ", err)
+		}
+	}
 }

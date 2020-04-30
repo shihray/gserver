@@ -2,8 +2,6 @@ package server
 
 import (
 	"context"
-	"time"
-
 	"github.com/shihray/gserver/registry"
 )
 
@@ -15,10 +13,6 @@ type Options struct {
 	Address  string
 	ID       string
 	Version  string
-
-	RegisterInterval time.Duration
-	RegisterTTL      time.Duration
-
 	// Other options for implementations of the interface
 	// can be stored in a context
 	Context context.Context
@@ -101,20 +95,6 @@ func Metadata(md map[string]string) Option {
 func Registry(r registry.Registry) Option {
 	return func(o *Options) {
 		o.Registry = r
-	}
-}
-
-// Register the service with a TTL
-func RegisterTTL(t time.Duration) Option {
-	return func(o *Options) {
-		o.RegisterTTL = t
-	}
-}
-
-// RegisterInterval specifies the interval on which to re-register
-func RegisterInterval(t time.Duration) Option {
-	return func(o *Options) {
-		o.RegisterInterval = t
 	}
 }
 

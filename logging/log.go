@@ -5,14 +5,9 @@ import (
 )
 
 var beego *beeGoLog.BeeLogger
-var bi *beeGoLog.BeeLogger
 
-func InitLog(debug bool, ProcessID string, logDir string, settings map[string]interface{}) {
-	beego = NewBeegoLogger(debug, ProcessID, logDir, settings)
-}
-
-func InitBI(debug bool, ProcessID string, logDir string, settings map[string]interface{}) {
-	bi = NewBeegoLogger(debug, ProcessID, logDir, settings)
+func InitLog(debug bool, logDir string, settings map[string]interface{}) {
+	beego = NewBeegoLogger(debug, logDir, settings)
 }
 
 func LogBeego() *beeGoLog.BeeLogger {
@@ -22,22 +17,10 @@ func LogBeego() *beeGoLog.BeeLogger {
 	return beego
 }
 
-func BiBeego() *beeGoLog.BeeLogger {
-	return bi
-}
-
 func CreateTrace(trace, span string) TraceSpan {
 	return &TraceSpanImp{
 		Trace: trace,
 		Span:  span,
-	}
-}
-
-func BiReport(msg string) {
-	//gLogger.doPrintf(debugLevel, printDebugLevel, format, a...)
-	l := BiBeego()
-	if l != nil {
-		l.BiReport(msg)
 	}
 }
 

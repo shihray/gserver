@@ -95,7 +95,6 @@ type JsonStruct struct {
 	Message      string      `json:"message"`
 	File         string      `json:"file"`
 	Stack        string      `json:"stack"`
-	ProcessId    string      `json:"processid"`
 	Level        string      `json:"level"`
 	TraceId      string      `json:"trace_id"`
 	TraceSpan    string      `json:"trace_span"`
@@ -130,7 +129,7 @@ func Register(name string, log newLoggerFunc) {
 
 type FormatFunc func(when time.Time, span *BeegoTraceSpan, logLevel int, msg string, v ...interface{}) (string, error)
 
-func DefineErrorLogFunc(processId string, loggerFuncCallDepth int) FormatFunc {
+func DefineErrorLogFunc(loggerFuncCallDepth int) FormatFunc {
 	return func(when time.Time, span *BeegoTraceSpan, logLevel int, msg string, v ...interface{}) (s string, e error) {
 		h, _ := FormatTimeHeader(when)
 		msgstruct := &JsonStruct{}
@@ -178,7 +177,6 @@ func DefineErrorLogFunc(processId string, loggerFuncCallDepth int) FormatFunc {
 		}
 
 		//set level info in front of filename info
-		msgstruct.ProcessId = processId
 		msgstruct.Level = LevelPrefix[logLevel]
 
 		if span != nil {
@@ -212,7 +210,6 @@ type BeeLogger struct {
 	signalChan          chan string
 	wg                  sync.WaitGroup
 	outputs             []*nameLogger
-	ProcessID           string
 }
 
 const defaultAsyncMsgLen = 1e3
@@ -387,8 +384,7 @@ func (bl *BeeLogger) formatText(when time.Time, span *BeegoTraceSpan, logLevel i
 		// set to emergency to ensure all log will be print out correctly
 		logLevel = LevelEmergency
 	} else {
-		// msg = " [" + bl.ProcessID + "] " + LevelPrefix[logLevel] + msg
-		msg = fmt.Sprintf(" [%s] %s%s", bl.ProcessID, LevelPrefix[logLevel], msg)
+		msg = fmt.Sprintf(" %s%s", LevelPrefix[logLevel], msg)
 	}
 
 	// if span != nil {
@@ -433,7 +429,6 @@ func (bl *BeeLogger) formatJson(when time.Time, span *BeegoTraceSpan, logLevel i
 		// set to emergency to ensure all log will be print out correctly
 		logLevel = LevelEmergency
 	} else {
-		msgstruct.ProcessId = bl.ProcessID
 		msgstruct.Level = LevelPrefix[logLevel]
 	}
 

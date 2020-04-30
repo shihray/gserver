@@ -1,7 +1,6 @@
 package registry
 
 import (
-	"fmt"
 	"github.com/gomodule/redigo/redis"
 	hash "github.com/mitchellh/hashstructure"
 	Logging "github.com/shihray/gserver/logging"
@@ -18,6 +17,11 @@ type redisRegistry struct {
 	register   map[string]uint64
 }
 
+type RedisService struct {
+	Name    string // service name
+	Address string // service address
+}
+
 func newRedisRegistry(opts ...Option) Registry {
 	cr := &redisRegistry{
 		opts: Options{
@@ -29,24 +33,6 @@ func newRedisRegistry(opts ...Option) Registry {
 	for _, o := range opts {
 		o(&cr.opts)
 	}
-
-	//redisConn, connErr := cr.ConnectRedis()
-	//if connErr != nil {
-	//	return nil
-	//}
-	//defer redisConn.Close()
-	//
-	//keyList, err := redis.Strings(redisConn.Do("Keys", RegisterRedisKey.Addr("*")))
-	//if err != nil && err != redis.ErrNil {
-	//	msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
-	//	Logging.Error(msg + err.Error())
-	//	return nil
-	//}
-	//
-	//for _, key := range keyList {
-	//	redisConn.Do("DEL", key)
-	//}
-
 	return cr
 }
 
@@ -58,18 +44,21 @@ func (c *redisRegistry) Deregister(s *Service) error {
 	}
 	defer redisConn.Close()
 
-	redisName := fmt.Sprintf("%v@%v", s.Name, s.Address)
-
-	_, err := redisConn.Do("HDEL", RegisterRedisKey.Addr(s.Name), redisName)
+	_, err := redisConn.Do("SREM", RegisterRedisKey.Addr(s.Name), s.ID)
 	if err != nil && err != redis.ErrNil {
-		msg := "redis KEYS Error, func: Deregister, 取得Redis資料Key錯誤 "
+		msg := "redis SREM Error, func: Deregister, 刪除陣列中元素錯誤 "
+		Logging.Error(msg + err.Error())
+		return err
+	}
+	if _, er := redisConn.Do("DEL", RegisterRedisKey.Addr(s.ID)); er != nil {
+		msg := "redis DEL Error, func: Deregister, 刪除Key錯誤 "
 		Logging.Error(msg + err.Error())
 		return err
 	}
 
 	// delete our hash of the service
 	c.Lock()
-	delete(c.register, redisName)
+	delete(c.register, s.ID)
 	c.Unlock()
 
 	return nil
@@ -97,15 +86,20 @@ func (c *redisRegistry) Register(s *Service, opts ...RegisterOption) error {
 	}
 	defer redisConn.Close()
 
-	redisName := fmt.Sprintf("%v@%v", s.Name, s.Address)
-	if _, errOfRedis := redisConn.Do("HSET", RegisterRedisKey.Addr(s.Name), redisName, s.Address); errOfRedis != nil {
-		msg := "redis KEYS Error, func: Register, 取得Redis資料Key錯誤 "
+	//redisName := fmt.Sprintf("%v@%v", s.Name, s.Address)
+	if _, errOfRedis := redisConn.Do("SADD", RegisterRedisKey.Addr(s.Name), s.ID); errOfRedis != nil {
+		msg := "redis SADD Error, func: Register, 加入列表失敗 "
 		Logging.Error(msg + errOfRedis.Error())
+		return nil
+	}
+	if _, setKeyErr := redisConn.Do("SET", ModuleInfoRedisKey.Addr(s.ID), s.Address); setKeyErr != nil {
+		msg := "redis SET Error, func: Register, 加入列表失敗 "
+		Logging.Error(msg + setKeyErr.Error())
 		return nil
 	}
 	// save our hash of the service
 	c.Lock()
-	c.register[redisName] = h
+	c.register[s.ID] = h
 	c.Unlock()
 
 	return nil
@@ -118,20 +112,28 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 	}
 	defer redisConn.Close()
 
-	var err error
 	hList := make(map[string]string, 0)
 	nameSplit := strings.Split(name, "@")
 	if len(nameSplit) == 1 {
-		hList, err = redis.StringMap(redisConn.Do("HGETALL", RegisterRedisKey.Addr(name)))
+		moduleList, err := redis.Strings(redisConn.Do("SMEMBERS", RegisterRedisKey.Addr(name)))
 		if err != nil {
-			msg := "redis KEYS Error, func: GetService, 取得Redis資料Key錯誤 "
+			msg := "redis SMEMBERS Error, func: GetService, 取得Redis資料Key錯誤 "
 			Logging.Error(msg + err.Error())
 			return nil, err
 		}
+		for _, s := range moduleList {
+			addr, err := redis.String(redisConn.Do("GET", ModuleInfoRedisKey.Addr(s)))
+			if err != nil {
+				msg := "redis GET Error, func: GetService, 取得Redis資料Key錯誤 "
+				Logging.Error(msg + err.Error())
+				return nil, err
+			}
+			hList[s] = addr
+		}
 	} else {
-		addr, err := redis.String(redisConn.Do("HGET", RegisterRedisKey.Addr(nameSplit[0]), name))
+		addr, err := redis.String(redisConn.Do("GET", ModuleInfoRedisKey.Addr(name)))
 		if err != nil {
-			msg := "redis KEYS Error, func: GetService, 取得Redis資料Key錯誤 "
+			msg := "redis GET Error, func: GetService, 取得Redis資料Key錯誤 "
 			Logging.Error(msg + err.Error())
 			return nil, err
 		}
@@ -152,17 +154,42 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 }
 
 func (c *redisRegistry) ListServices() ([]*Service, error) {
-	//rsp, _, err := c.Client.Catalog().Services(nil)
-	//if err != nil {
-	//	return nil, err
-	//}
+	redisConn, connErr := c.ConnectRedis()
+	if connErr != nil {
+		return nil, connErr
+	}
+	defer redisConn.Close()
+
+	keys, findKeysErr := redis.Strings(redisConn.Do("KEYS", RegisterRedisKey.Addr("*")))
+	if findKeysErr != nil {
+		return nil, findKeysErr
+	}
 
 	var services []*Service
+	for _, key := range keys {
+		name := strings.Split(key, ":")
+		c.Clean(name[len(name)-1])
+		serviceList, getListErr := redis.Strings(redisConn.Do("SMEMBERS", key))
+		if getListErr != nil {
+			msg := "redis KEYS Error, func: GetService, 取得Redis資料Key錯誤 "
+			Logging.Error(msg + getListErr.Error())
+			return nil, getListErr
+		}
 
-	//for service := range rsp {
-	//	services = append(services, &Service{Name: service})
-	//}
-
+		for _, id := range serviceList {
+			addr, getErr := redis.String(redisConn.Do("GET", ModuleInfoRedisKey.Addr(id)))
+			if getErr != nil {
+				msg := "redis GET Error, func: GetService, 取得Redis資料錯誤 "
+				Logging.Error(msg + getErr.Error())
+				return nil, getErr
+			}
+			services = append(services, &Service{
+				ID:      id,
+				Name:    name[len(name)-1],
+				Address: addr,
+			})
+		}
+	}
 	return services, nil
 }
 
@@ -182,4 +209,37 @@ func (c *redisRegistry) ConnectRedis() (redis.Conn, error) {
 		return nil, getPoolErr
 	}
 	return redisPool.Get(), getPoolErr
+}
+
+func (c *redisRegistry) Clean(typeName string) error {
+	redisConn, connErr := c.ConnectRedis()
+	if connErr != nil {
+		return connErr
+	}
+	defer redisConn.Close()
+	// 檢查清單中ID
+	isExistMap := make(map[string]bool, 0)
+	moduleKeys, moduleKeysErr := redis.Strings(redisConn.Do("SMEMBERS", RegisterRedisKey.Addr(typeName)))
+	if moduleKeysErr != nil {
+		return moduleKeysErr
+	}
+	for _, key := range moduleKeys {
+		isExistMap[key] = true
+	}
+	// 找尋所有module Info
+	keys, infoKeysErr := redis.Strings(redisConn.Do("KEYS", ModuleInfoRedisKey.Addr(typeName+"*")))
+	if infoKeysErr != nil {
+		return infoKeysErr
+	}
+	// 比對list & Infos 資料，並將找不到的移除
+	for _, key := range keys {
+		splitKey := strings.Split(key, ":")
+		if _, ok := isExistMap[splitKey[len(splitKey)-1]]; !ok {
+			if _, delErr := redisConn.Do("DEL", key); delErr != nil {
+				return delErr
+			}
+		}
+	}
+
+	return nil
 }

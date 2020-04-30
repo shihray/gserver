@@ -88,6 +88,7 @@ func main() {
 	erro := app.Run(
 		ping.Module(),
 		pong.Module(),
+		pong.Module(),
 	)
 	if erro != nil {
 		log.Println("App Work[Run] Error", erro.Error())

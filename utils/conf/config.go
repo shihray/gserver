@@ -29,10 +29,9 @@ type Rpc struct {
 }
 
 type ModuleSettings struct {
-	ID        string
-	Host      string
-	ProcessID string
-	Settings  map[string]interface{}
+	ID       string
+	Host     string
+	Settings map[string]interface{}
 }
 
 // Read config.

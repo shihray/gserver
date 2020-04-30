@@ -7,18 +7,17 @@ import (
 	"github.com/shihray/gserver/utils/conf"
 )
 
-func NewBeegoLogger(debug bool, ProcessID string, Logdir string, settings map[string]interface{}) *logging.BeeLogger {
+func NewBeegoLogger(debug bool, Logdir string, settings map[string]interface{}) *logging.BeeLogger {
 	log := logging.NewLogger()
-	log.ProcessID = ProcessID
 	log.EnableFuncCallDepth(true)
 	log.Async(1024) //同步打印,可能影响性能
 	log.SetLogFuncCallDepth(4)
 	if debug {
 		//控制台
-		log.SetLogger(logging.AdapterConsole)
+		_ = log.SetLogger(logging.AdapterConsole)
 	}
-	if contenttype, ok := settings["contenttype"]; ok {
-		log.SetContentType(contenttype.(string))
+	if contentType, ok := settings["contenttype"]; ok {
+		log.SetContentType(contentType.(string))
 	}
 	if f, ok := settings["file"]; ok {
 		ff := f.(map[string]interface{})
@@ -30,7 +29,7 @@ func NewBeegoLogger(debug bool, ProcessID string, Logdir string, settings map[st
 		if suffix, ok := ff["suffix"]; ok {
 			Suffix = suffix.(string)
 		}
-		ff["filename"] = fmt.Sprintf("%s/%v%s%s", Logdir, Prefix, ProcessID, Suffix)
+		ff["filename"] = fmt.Sprintf("%s/%v%s", Logdir, Prefix, Suffix)
 		config, err := json.Marshal(ff)
 		if err != nil {
 			logging.Error(err)
@@ -47,7 +46,7 @@ func NewBeegoLogger(debug bool, ProcessID string, Logdir string, settings map[st
 		if suffix, ok := multifile["suffix"]; ok {
 			Suffix = suffix.(string)
 		}
-		multifile["filename"] = fmt.Sprintf("%s/%v%s%s", Logdir, Prefix, ProcessID, Suffix)
+		multifile["filename"] = fmt.Sprintf("%s/%v%s", Logdir, Prefix, Suffix)
 		config, err := json.Marshal(multifile)
 		if err != nil {
 			logging.Error(err)

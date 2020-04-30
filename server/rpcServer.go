@@ -110,14 +110,13 @@ func (s *rpcServer) ServiceRegister() error {
 	s.Unlock()
 
 	if !registered {
-		logging.Info("Registering node: ", service.ID)
+		logging.Info("Registering node: %v", service.ID)
 	}
 
+	config.Registry.Clean(service.Name)
+	//config.Registry.ListServices()
 	// create ModuleRegistry options
-	rOpts := []ModuleRegistry.RegisterOption{
-		ModuleRegistry.RegisterTTL(config.RegisterTTL),
-	}
-
+	rOpts := []ModuleRegistry.RegisterOption{}
 	if err := config.Registry.Register(service, rOpts...); err != nil {
 		return err
 	}

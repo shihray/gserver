@@ -1,34 +1,29 @@
 package basemodule
 
 import (
-	"time"
-
-	nats "github.com/nats-io/nats.go"
+	CommonNats "github.com/nats-io/nats.go"
 	"github.com/shihray/gserver/registry"
 	mqrpc "github.com/shihray/gserver/rpc"
-	rpcpb "github.com/shihray/gserver/rpc/pb"
+	rpcPB "github.com/shihray/gserver/rpc/pb"
 )
 
 type Option func(*Options)
 
 type Options struct {
-	Nats             *nats.Conn
+	Nats             *CommonNats.Conn
 	Version          string
 	Debug            bool
 	WorkDir          string
 	ConfPath         string
 	LogDir           string
 	BIDir            string
-	ProcessID        string
 	Registry         registry.Registry
-	RegisterTTL      time.Duration
-	RegisterInterval time.Duration
 	ClientRPChandler ClientRPChandler
 	ServerRPCHandler ServerRPCHandler
 	RoutineCount     int
 }
 
-type ClientRPChandler func(app App, server registry.Service, rpcinfo rpcpb.RPCInfo, result interface{}, err string, exec_time int64)
+type ClientRPChandler func(app App, server registry.Service, rpcinfo rpcPB.RPCInfo, result interface{}, err string, exec_time int64)
 
 type ServerRPCHandler func(app App, module Module, callInfo mqrpc.CallInfo)
 
@@ -56,13 +51,7 @@ func LogDir(v string) Option {
 	}
 }
 
-func ProcessID(v string) Option {
-	return func(o *Options) {
-		o.ProcessID = v
-	}
-}
-
-func Nats(nc *nats.Conn) Option {
+func Nats(nc *CommonNats.Conn) Option {
 	return func(o *Options) {
 		o.Nats = nc
 	}

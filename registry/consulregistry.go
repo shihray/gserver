@@ -350,3 +350,7 @@ func (c *consulRegistry) String() string {
 func (c *consulRegistry) Options() Options {
 	return c.opts
 }
+
+func (c *consulRegistry) Clean(typeName string) error {
+	return nil
+}

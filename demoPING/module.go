@@ -1,12 +1,12 @@
 package ping
 
 import (
-	mqrpc "github.com/shihray/gserver/rpc"
-	"time"
-
+	log "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
 	basemodule "github.com/shihray/gserver/module/base"
+	mqrpc "github.com/shihray/gserver/rpc"
 	Conf "github.com/shihray/gserver/utils/conf"
+	"time"
 
 	"github.com/shihray/gserver/utils/enum/moduleType"
 )
@@ -59,7 +59,13 @@ func (p *Ping) Run(closeSig chan bool) {
 		for !p.updateStop {
 			select {
 			case <-tickUpdate.C:
-				go p.RpcInvoke("PONG", st)
+				{
+					s, err := p.GetRandomServiceID("PONG")
+					if err != nil {
+						log.Debug("GetRandomServiceID Error ", err)
+					}
+					go p.RpcInvoke(s, st)
+				}
 			}
 		}
 	}()
