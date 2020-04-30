@@ -195,7 +195,7 @@ func (mu *ModuleUtil) RemoveSutDownService(s *ModuleRegistry.Service) {
 	session, ok := mu.serverList.Load(s.ID)
 	if ok && session != nil {
 		session.(module.ServerSession).GetRpc().Done()
-		ModuleRegistry.Deregister(session.(module.ServerSession).GetService())
+		mu.Registry().Deregister(session.(module.ServerSession).GetService())
 		mu.serverList.Delete(s.ID)
 	}
 }
@@ -283,7 +283,7 @@ func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInv
 	rlt, callServerErr := server.Call(nil, rpcInvokeResult)
 	if callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
 		//mu.RemoveSutDownService(server.GetService())
-		if errOfDeregister := ModuleRegistry.Deregister(server.GetService()); errOfDeregister != nil {
+		if errOfDeregister := mu.Registry().Deregister(server.GetService()); errOfDeregister != nil {
 			fmt.Printf("Deregister Service Error : %v \n", errOfDeregister)
 			err = errOfDeregister.Error()
 			return
@@ -301,7 +301,7 @@ func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, rpcI
 	}
 	if callServerErr := server.CallNR(rpcInvokeResult); callServerErr.Error() == defaultRPC.DeadlineExceeded || callServerErr.Error() == defaultRPC.ClientClose {
 		//mu.RemoveSutDownService(server.GetService())
-		if errOfDeregister := ModuleRegistry.Deregister(server.GetService()); errOfDeregister != nil {
+		if errOfDeregister := mu.Registry().Deregister(server.GetService()); errOfDeregister != nil {
 			fmt.Printf("Deregister Service Error : %v \n", errOfDeregister)
 			err = errOfDeregister
 			return
