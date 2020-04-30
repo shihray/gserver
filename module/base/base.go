@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	ModuleRegistry "github.com/shihray/gserver/registry"
 	defaultRPC "github.com/shihray/gserver/rpc/base"
 	"math/rand"
 	"os"
@@ -302,7 +301,7 @@ func (m *BaseModule) CheckHeartbeat(typeName string) {
 			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 			defer cancel()
 			if _, callServerErr := s.Call(ctx, st); callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
-				if errOfDeregister := ModuleRegistry.Deregister(s.GetService()); errOfDeregister != nil {
+				if errOfDeregister := m.App.Registry().Deregister(s.GetService()); errOfDeregister != nil {
 					log.Debug("Heartbeat Error ", errOfDeregister)
 				}
 			}
