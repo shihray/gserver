@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	ModuleRegistry "github.com/shihray/gserver/registry"
+	defaultRPC "github.com/shihray/gserver/rpc/base"
 	"math/rand"
 	"os"
 	"sync"
@@ -163,7 +165,7 @@ func (m *BaseModule) GetRandomServiceID(typeName string) (result string, err err
 		return "", getServerErr
 	}
 	if len(services) == 0 {
-		return "", errors.New("service not found")
+		return "", ServiceNotFound.Error()
 	}
 	index := rand.Intn(len(services))
 	return services[index].GetName(), nil
@@ -296,8 +298,14 @@ func (m *BaseModule) CheckHeartbeat(typeName string) {
 	}
 	for _, session := range services {
 		st := mqrpc.NewResultInvoke("HB", nil)
-		if _, err := m.RpcInvoke(session.GetID(), st); err != "" {
-			log.Debug("Heartbeat Error ", err)
-		}
+		go func(s module.ServerSession) {
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			defer cancel()
+			if _, callServerErr := s.Call(ctx, st); callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
+				if errOfDeregister := ModuleRegistry.Deregister(s.GetService()); errOfDeregister != nil {
+					log.Debug("Heartbeat Error ", errOfDeregister)
+				}
+			}
+		}(session)
 	}
 }

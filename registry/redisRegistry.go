@@ -50,7 +50,7 @@ func (c *redisRegistry) Deregister(s *Service) error {
 		Logging.Error(msg + err.Error())
 		return err
 	}
-	if _, er := redisConn.Do("DEL", RegisterRedisKey.Addr(s.ID)); er != nil {
+	if _, er := redisConn.Do("DEL", ModuleInfoRedisKey.Addr(s.ID)); er != nil {
 		msg := "redis DEL Error, func: Deregister, 刪除Key錯誤 "
 		Logging.Error(msg + err.Error())
 		return err

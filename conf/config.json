@@ -9,20 +9,18 @@
   "Module": {
     "PING": [
       {
-        "ID": "PING",
-        "ProcessID": "develop"
+        "ID": "PING"
       }
     ],
     "PONG": [
       {
-        "ID": "PONG",
-        "ProcessID": "develop"
+        "ID": "PONG"
       }
     ]
   },
   "Rpc": {
     "MaxCoroutine": 10000,
-    "RpcExpired": 1,
+    "RpcExpired": 10,
     "LogSuccess": false
   }
 }

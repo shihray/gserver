@@ -1,6 +1,7 @@
 package basemodule
 
 import (
+	"errors"
 	"sync"
 
 	module "github.com/shihray/gserver/module"
@@ -24,4 +25,26 @@ func run(m *DefaultModule) {
 func destroy(m *DefaultModule) {
 	defer utils.RecoverFunc()
 	m.mi.OnDestroy()
+}
+
+type ModuleErr struct {
+	ID   int
+	Name string
+	Err  error
+}
+
+var (
+	ServiceNotFound = ModuleErr{ID: 001, Name: "service not found", Err: errors.New("service not found")}
+)
+
+func (e ModuleErr) String() string {
+	return e.Name
+}
+
+func (e ModuleErr) Int() int {
+	return e.ID
+}
+
+func (e ModuleErr) Error() error {
+	return e.Err
 }

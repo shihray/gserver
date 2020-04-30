@@ -112,13 +112,13 @@ func (c *NatsClient) onRequestHandle() error {
 		if err != nil && err == nats.ErrTimeout {
 			continue
 		} else if err != nil {
-			logging.Error("NatsClient error with ", err)
+			logging.Error("NatsClient error with %v", err.Error())
 			continue
 		}
 
 		resultInfo, err := c.UnmarshalResult(m.Data)
 		if err != nil {
-			logging.Error("資料解析錯誤 ", err)
+			logging.Error("資料解析錯誤 %v", err.Error())
 		} else {
 			correlationID := resultInfo.Cid
 			clientCallInfo, _ := c.callinfos.Load(correlationID)
@@ -128,7 +128,7 @@ func (c *NatsClient) onRequestHandle() error {
 				clientCallInfo.(ClinetCallInfo).call <- *resultInfo
 				c.CloseFch(clientCallInfo.(ClinetCallInfo).call)
 			} else {
-				logging.Warning(fmt.Sprintf("可能客戶端已超時了，但服務端處理完還給回調了 : [%s]", correlationID))
+				logging.Warning("可能客戶端已超時了，但服務端處理完還給回調了 : [%s]", correlationID)
 			}
 		}
 	}
