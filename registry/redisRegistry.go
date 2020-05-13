@@ -123,6 +123,15 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 		}
 		for _, s := range moduleList {
 			addr, err := redis.String(redisConn.Do("GET", ModuleInfoRedisKey.Addr(s)))
+			if err == redis.ErrNil {
+				_, err := redisConn.Do("SREM", RegisterRedisKey.Addr(nameSplit[0]), name)
+				if err != nil && err != redis.ErrNil {
+					msg := "redis SREM Error, func: GetService, 刪除陣列中元素錯誤 "
+					Logging.Error(msg + err.Error())
+					return nil, err
+				}
+				continue
+			}
 			if err != nil {
 				msg := "redis GET Error, func: GetService, 取得Redis資料Key錯誤 "
 				Logging.Error(msg + err.Error())
@@ -132,6 +141,15 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 		}
 	} else {
 		addr, err := redis.String(redisConn.Do("GET", ModuleInfoRedisKey.Addr(name)))
+		if err == redis.ErrNil {
+			_, err := redisConn.Do("SREM", RegisterRedisKey.Addr(nameSplit[0]), name)
+			if err != nil && err != redis.ErrNil {
+				msg := "redis SREM Error, func: GetService, 刪除陣列中元素錯誤 "
+				Logging.Error(msg + err.Error())
+				return nil, err
+			}
+			return nil, err
+		}
 		if err != nil {
 			msg := "redis GET Error, func: GetService, 取得Redis資料Key錯誤 "
 			Logging.Error(msg + err.Error())

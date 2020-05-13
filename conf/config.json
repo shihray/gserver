@@ -1,10 +1,9 @@
 {
   "Log":{
-    "level" : 6,
+    "level" : 7,
     "file":{
       "prefix" : "develop",
-      "daily" : true,
-      "level" : 6
+      "daily" : true
     }
   },
   "Module": {
