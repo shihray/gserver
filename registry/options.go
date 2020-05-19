@@ -21,6 +21,11 @@ func (key redisKey) Addr(val string) string {
 	return fmt.Sprintf("%s:%s", key, val)
 }
 
+// add web Title return redisKey
+func (key redisKey) Title(val interface{}) redisKey {
+	return redisKey(fmt.Sprintf("web%03v:%s", val, key))
+}
+
 // String return type of String
 func (key redisKey) String() string {
 	return string(key)
@@ -32,6 +37,7 @@ type Options struct {
 	Secure        bool
 	TLSConfig     *tls.Config
 	Context       context.Context
+	GroupID       int
 	RedisHost     string
 	RedisPassword string
 }

@@ -27,6 +27,7 @@ func newRedisRegistry(opts ...Option) Registry {
 		opts: Options{
 			RedisHost:     "localhost:6379",
 			RedisPassword: "",
+			GroupID:       1,
 		},
 		register: make(map[string]uint64),
 	}
@@ -44,7 +45,7 @@ func (c *redisRegistry) Deregister(s *Service) error {
 	}
 	defer redisConn.Close()
 
-	_, err := redisConn.Do("SREM", RegisterRedisKey.Addr(s.Name), s.ID)
+	_, err := redisConn.Do("SREM", RegisterRedisKey.Title(c.Options().GroupID).Addr(s.Name), s.ID)
 	if err != nil && err != redis.ErrNil {
 		msg := "redis SREM Error, func: Deregister, 刪除陣列中元素錯誤 "
 		Logging.Error(msg + err.Error())
@@ -87,7 +88,7 @@ func (c *redisRegistry) Register(s *Service, opts ...RegisterOption) error {
 	defer redisConn.Close()
 
 	//redisName := fmt.Sprintf("%v@%v", s.Name, s.Address)
-	if _, errOfRedis := redisConn.Do("SADD", RegisterRedisKey.Addr(s.Name), s.ID); errOfRedis != nil {
+	if _, errOfRedis := redisConn.Do("SADD", RegisterRedisKey.Title(c.Options().GroupID).Addr(s.Name), s.ID); errOfRedis != nil {
 		msg := "redis SADD Error, func: Register, 加入列表失敗 "
 		Logging.Error(msg + errOfRedis.Error())
 		return nil
@@ -115,7 +116,7 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 	hList := make(map[string]string, 0)
 	nameSplit := strings.Split(name, "@")
 	if len(nameSplit) == 1 {
-		moduleList, err := redis.Strings(redisConn.Do("SMEMBERS", RegisterRedisKey.Addr(name)))
+		moduleList, err := redis.Strings(redisConn.Do("SMEMBERS", RegisterRedisKey.Title(c.Options().GroupID).Addr(name)))
 		if err != nil {
 			msg := "redis SMEMBERS Error, func: GetService, 取得Redis資料Key錯誤 "
 			Logging.Error(msg + err.Error())
@@ -124,7 +125,7 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 		for _, s := range moduleList {
 			addr, err := redis.String(redisConn.Do("GET", ModuleInfoRedisKey.Addr(s)))
 			if err == redis.ErrNil {
-				_, err := redisConn.Do("SREM", RegisterRedisKey.Addr(nameSplit[0]), name)
+				_, err := redisConn.Do("SREM", RegisterRedisKey.Title(c.Options().GroupID).Addr(nameSplit[0]), name)
 				if err != nil && err != redis.ErrNil {
 					msg := "redis SREM Error, func: GetService, 刪除陣列中元素錯誤 "
 					Logging.Error(msg + err.Error())
@@ -142,7 +143,7 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 	} else {
 		addr, err := redis.String(redisConn.Do("GET", ModuleInfoRedisKey.Addr(name)))
 		if err == redis.ErrNil {
-			_, err := redisConn.Do("SREM", RegisterRedisKey.Addr(nameSplit[0]), name)
+			_, err := redisConn.Do("SREM", RegisterRedisKey.Title(c.Options().GroupID).Addr(nameSplit[0]), name)
 			if err != nil && err != redis.ErrNil {
 				msg := "redis SREM Error, func: GetService, 刪除陣列中元素錯誤 "
 				Logging.Error(msg + err.Error())
@@ -178,7 +179,7 @@ func (c *redisRegistry) ListServices() ([]*Service, error) {
 	}
 	defer redisConn.Close()
 
-	keys, findKeysErr := redis.Strings(redisConn.Do("KEYS", RegisterRedisKey.Addr("*")))
+	keys, findKeysErr := redis.Strings(redisConn.Do("KEYS", RegisterRedisKey.Title(c.Options().GroupID).Addr("*")))
 	if findKeysErr != nil {
 		return nil, findKeysErr
 	}
@@ -237,7 +238,7 @@ func (c *redisRegistry) Clean(typeName string) error {
 	defer redisConn.Close()
 	// 檢查清單中ID
 	isExistMap := make(map[string]bool, 0)
-	moduleKeys, moduleKeysErr := redis.Strings(redisConn.Do("SMEMBERS", RegisterRedisKey.Addr(typeName)))
+	moduleKeys, moduleKeysErr := redis.Strings(redisConn.Do("SMEMBERS", RegisterRedisKey.Title(c.Options().GroupID).Addr(typeName)))
 	if moduleKeysErr != nil {
 		return moduleKeysErr
 	}
@@ -252,8 +253,8 @@ func (c *redisRegistry) Clean(typeName string) error {
 	// 比對list & Infos 資料，並將找不到的移除
 	for _, key := range keys {
 		splitKey := strings.Split(key, ":")
-		if _, ok := isExistMap[splitKey[len(splitKey)-1]]; !ok {
-			if _, delErr := redisConn.Do("DEL", key); delErr != nil {
+		if _, ok := isExistMap[key]; !ok {
+			if _, delErr := redisConn.Do("DEL", splitKey[len(splitKey)-1]); delErr != nil {
 				return delErr
 			}
 		}

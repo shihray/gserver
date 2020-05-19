@@ -73,6 +73,7 @@ func main() {
 		rsRedis := ModuleRegistry.NewRedisRegistry(func(op *ModuleRegistry.Options) {
 			op.RedisHost = "localhost:6379"
 			op.RedisPassword = ""
+			op.GroupID = 2
 		})
 		registryOption = Module.Registry(rsRedis)
 	}
@@ -88,7 +89,7 @@ func main() {
 	erro := app.Run(
 		ping.Module(),
 		pong.Module(),
-		pong.Module(),
+		//pong.Module(),
 	)
 	if erro != nil {
 		log.Println("App Work[Run] Error", erro.Error())
