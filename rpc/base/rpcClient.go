@@ -8,9 +8,9 @@ import (
 	"github.com/golang/protobuf/proto"
 	logging "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
-	mqrpc "github.com/shihray/gserver/rpc"
-	rpcpb "github.com/shihray/gserver/rpc/pb"
-	argsutil "github.com/shihray/gserver/rpc/util"
+	mqRPC "github.com/shihray/gserver/rpc"
+	rpcPB "github.com/shihray/gserver/rpc/pb"
+	argsUtil "github.com/shihray/gserver/rpc/util"
 	utils "github.com/shihray/gserver/utils"
 	"github.com/shihray/gserver/utils/uuid"
 )
@@ -25,7 +25,7 @@ type RPCClient struct {
 	natsClient *NatsClient
 }
 
-func NewRPCClient(app module.App, session module.ServerSession) (mqrpc.RPCClient, error) {
+func NewRPCClient(app module.App, session module.ServerSession) (mqRPC.RPCClient, error) {
 	rpcClient := new(RPCClient)
 	rpcClient.app = app
 	natsClient, err := NewNatsClient(app, session)
@@ -46,7 +46,7 @@ func (c *RPCClient) Done() (err error) {
 
 func (c *RPCClient) CallArgs(ctx context.Context, internalFunc string, argsType []string, args [][]byte) (r interface{}, e string) {
 	var correlationID = uuid.Rand().Hex()
-	rpcInfo := &rpcpb.RPCInfo{
+	rpcInfo := &rpcPB.RPCInfo{
 		Fn:       *proto.String(internalFunc),
 		Reply:    *proto.Bool(true),
 		Expired:  *proto.Int64((time.Now().UTC().Add(time.Second * time.Duration(c.app.GetSettings().Rpc.RpcExpired)).UnixNano()) / utils.Nano2Millisecond),
@@ -55,10 +55,10 @@ func (c *RPCClient) CallArgs(ctx context.Context, internalFunc string, argsType 
 		ArgsType: argsType,
 	}
 
-	callInfo := &mqrpc.CallInfo{
+	callInfo := &mqRPC.CallInfo{
 		RpcInfo: *rpcInfo,
 	}
-	callback := make(chan rpcpb.ResultInfo, 1)
+	callback := make(chan rpcPB.ResultInfo, 1)
 
 	err := c.natsClient.Call(*callInfo, callback)
 	if err != nil {
@@ -72,7 +72,7 @@ func (c *RPCClient) CallArgs(ctx context.Context, internalFunc string, argsType 
 		if !ok {
 			return nil, ClientClose
 		}
-		result, err := argsutil.Bytes2Args(c.app, resultInfo.ResultType, resultInfo.Result)
+		result, err := argsUtil.Bytes2Args(c.app, resultInfo.ResultType, resultInfo.Result)
 		if err != nil {
 			return nil, err.Error()
 		}
@@ -84,14 +84,14 @@ func (c *RPCClient) CallArgs(ctx context.Context, internalFunc string, argsType 
 	}
 }
 
-func (c *RPCClient) closeCallbackChan(ch chan rpcpb.ResultInfo) {
+func (c *RPCClient) closeCallbackChan(ch chan rpcPB.ResultInfo) {
 	defer utils.RecoverFunc()
 	close(ch) // panic if ch is closed
 }
 
 func (c *RPCClient) CallNRArgs(ifunc string, argsType []string, args [][]byte) (err error) {
 	var correlationID = uuid.Rand().Hex()
-	rpcInfo := &rpcpb.RPCInfo{
+	rpcInfo := &rpcPB.RPCInfo{
 		Fn:       *proto.String(ifunc),
 		Reply:    *proto.Bool(false),
 		Expired:  *proto.Int64((time.Now().UTC().Add(time.Second * time.Duration(c.app.GetSettings().Rpc.RpcExpired)).UnixNano()) / utils.Nano2Millisecond),
@@ -99,7 +99,7 @@ func (c *RPCClient) CallNRArgs(ifunc string, argsType []string, args [][]byte) (
 		Args:     args,
 		ArgsType: argsType,
 	}
-	callInfo := &mqrpc.CallInfo{
+	callInfo := &mqRPC.CallInfo{
 		RpcInfo: *rpcInfo,
 	}
 	return c.natsClient.CallNR(*callInfo)
@@ -108,13 +108,13 @@ func (c *RPCClient) CallNRArgs(ifunc string, argsType []string, args [][]byte) (
 /**
 消息请求 需要回复
 */
-func (c *RPCClient) Call(ctx context.Context, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string) {
+func (c *RPCClient) Call(ctx context.Context, rpcInvokeResult *mqRPC.ResultInvokeST) (interface{}, string) {
 	funcName, params := rpcInvokeResult.Get()
 	argsType := make([]string, len(params))
 	args := make([][]byte, len(params))
 	for k, param := range params {
 		var err error = nil
-		argsType[k], args[k], err = argsutil.ArgsTypeAnd2Bytes(c.app, param)
+		argsType[k], args[k], err = argsUtil.ArgsTypeAnd2Bytes(c.app, param)
 		if err != nil {
 			return nil, fmt.Sprintf("args[%d] error %s", k, err.Error())
 		}
@@ -130,12 +130,12 @@ func (c *RPCClient) Call(ctx context.Context, rpcInvokeResult *mqrpc.ResultInvok
 /**
 消息请求 不需要回复
 */
-func (c *RPCClient) CallNR(rpcInvokeResult *mqrpc.ResultInvokeST) (err error) {
+func (c *RPCClient) CallNR(rpcInvokeResult *mqRPC.ResultInvokeST) (err error) {
 	funcName, params := rpcInvokeResult.Get()
 	argsType := make([]string, len(params))
 	args := make([][]byte, len(params))
 	for k, param := range params {
-		argsType[k], args[k], err = argsutil.ArgsTypeAnd2Bytes(c.app, param)
+		argsType[k], args[k], err = argsUtil.ArgsTypeAnd2Bytes(c.app, param)
 		if err != nil {
 			return fmt.Errorf("args[%d] error %s", k, err.Error())
 		}
