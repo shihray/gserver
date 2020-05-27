@@ -1,11 +1,12 @@
 package ping
 
 import (
-	log "github.com/shihray/gserver/logging"
+	"fmt"
 	module "github.com/shihray/gserver/module"
 	basemodule "github.com/shihray/gserver/module/base"
 	mqrpc "github.com/shihray/gserver/rpc"
 	Conf "github.com/shihray/gserver/utils/conf"
+	log "github.com/z9905080/gloger"
 	"time"
 
 	"github.com/shihray/gserver/utils/enum/moduleType"
@@ -62,7 +63,7 @@ func (p *Ping) Run(closeSig chan bool) {
 				{
 					s, err := p.GetRandomServiceID("PONG")
 					if err != nil {
-						log.Debug("[%v]GetRandomServiceID Error :%v", s, err.Error())
+						log.Debug(fmt.Sprintf("[%v]GetRandomServiceID Error :%v\n", s, err.Error()))
 					}
 					go p.RpcInvoke(s, st)
 				}

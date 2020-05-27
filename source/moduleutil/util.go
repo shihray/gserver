@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"github.com/nats-io/nats.go"
 	"github.com/pkg/errors"
-	logging "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
 	baseModule "github.com/shihray/gserver/module/base"
 	ModuleRegistry "github.com/shihray/gserver/registry"
 	mqRPC "github.com/shihray/gserver/rpc"
 	defaultRPC "github.com/shihray/gserver/rpc/base"
 	CommonConf "github.com/shihray/gserver/utils/conf"
+	log "github.com/z9905080/gloger"
 	random "math/rand"
 	"os"
 	"os/exec"
@@ -39,13 +39,11 @@ func newOptions(opts ...module.Option) module.Options {
 		applicationDir, _ = filepath.Split(ApplicationPath)
 	}
 	confPath := applicationDir + "/conf/config.json"
-	logPath := applicationDir + "/logs"
 	opt := module.Options{
-		WorkDir:      applicationDir,                 // 工作路徑
+		LogLevel:     int(log.DEBUG),                 // log 輸出等級
+		LogMode:      int(log.Stdout),                // log 輸出模式
 		ConfPath:     confPath,                       // config file path
-		LogDir:       logPath,                        // log file path
 		Registry:     ModuleRegistry.DefaultRegistry, // 註冊器
-		Debug:        true,                           // 初始化偵錯模式
 		RoutineCount: 1000,                           // Register Routine Channel length
 	}
 	for _, o := range opts {
@@ -55,7 +53,7 @@ func newOptions(opts ...module.Option) module.Options {
 	if opt.Nats == nil {
 		nc, err := nats.Connect(nats.DefaultURL)
 		if err != nil {
-			logging.Error("Nats 無法取得連線: %s", err.Error())
+			log.Error("Nats 無法取得連線:", err.Error())
 		}
 		opt.Nats = nc
 	}
@@ -79,12 +77,13 @@ type ModuleUtil struct {
 	startupCallback         func(app module.App)
 	moduleInitCallback      func(app module.App, module module.Module)
 	protocolMarshalCallback func(Result interface{}, Error interface{}) (module.ProtocolMarshal, string)
-	lock                    sync.RWMutex
+	lock                    *sync.RWMutex
 }
 
 func NewApp(opts ...module.Option) module.App {
 	options := newOptions(opts...)
 	mu := new(ModuleUtil)
+	mu.lock = new(sync.RWMutex)
 	mu.opts = options
 	mu.rpcSerializes = map[string]module.RPCSerialize{}
 
@@ -114,16 +113,14 @@ func (mu *ModuleUtil) Run(mods ...module.Module) error {
 	if err != nil {
 		panic(fmt.Sprintf("config path error %v", err))
 	}
-	fmt.Printf("Server configuration path : %s\n", mu.opts.ConfPath)
+	log.Info("Server configuration path:", mu.opts.ConfPath)
 
 	CommonConf.LoadConfig(f.Name())
 	mu.OnInit(CommonConf.Conf)
-	logging.InitLog(mu.opts.Debug, mu.opts.LogDir, CommonConf.Conf.Log)
-	level := 7
-	if _, ok := CommonConf.Conf.Log["level"]; ok {
-		level = int(CommonConf.Conf.Log["level"].(float64))
-	}
-	logging.LogBeego().SetLevel(level)
+	// 設定輸出Log等級
+	log.SetCurrentLevel(log.Level(mu.opts.LogLevel))
+	// 設定輸出模式 0:印出 1:寫入file
+	log.SetLogMode(log.OutputMode(mu.opts.LogMode))
 
 	manager := baseModule.NewModuleManager()
 	// register module to manager
@@ -149,7 +146,7 @@ func (mu *ModuleUtil) Run(mods ...module.Module) error {
 	}()
 	select {
 	case <-wait:
-		logging.Info("gserver closing down (signal: %v)", sig)
+		log.Info("gserver closing down (signal:", sig, ")")
 	}
 
 	return nil
@@ -212,13 +209,13 @@ func (mu *ModuleUtil) OnDestroy() error {
 func (mu *ModuleUtil) GetServerByID(id string) (module.ServerSession, error) {
 	services, err := mu.opts.Registry.GetService(id)
 	if err != nil {
-		logging.Warning("GetServerByID %v", err)
+		log.Warn("GetServerByID", err)
 	}
 	for _, service := range services {
 		if _, ok := mu.serverList.Load(service.ID); !ok {
 			s, err := baseModule.NewServerSession(mu, service.ID, service)
 			if err != nil {
-				logging.Warning("NewServerSession %v", err)
+				log.Warn("NewServerSession", err)
 			} else {
 				s.SetService(service)
 				mu.serverList.Store(service.ID, s)
@@ -236,7 +233,7 @@ func (mu *ModuleUtil) GetServersByType(typeName string) ([]module.ServerSession,
 	sessions := make([]module.ServerSession, 0)
 	services, err := mu.opts.Registry.GetService(typeName)
 	if err != nil {
-		logging.Warning("GetServersByType %v", err)
+		log.Warn("GetServersByType", err)
 		return sessions, err
 	}
 	for _, service := range services {
@@ -244,7 +241,7 @@ func (mu *ModuleUtil) GetServersByType(typeName string) ([]module.ServerSession,
 		if !ok {
 			s, err := baseModule.NewServerSession(mu, service.ID, service)
 			if err != nil {
-				logging.Warning("NewServerSession %v", err)
+				log.Warn("NewServerSession", err)
 			} else {
 				mu.serverList.Store(service.ID, s)
 				sessions = append(sessions, s)
@@ -287,9 +284,8 @@ func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInv
 	}
 	rlt, callServerErr := server.Call(nil, rpcInvokeResult)
 	if callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
-		//mu.RemoveSutDownService(server.GetService())
 		if errOfDeregister := mu.Registry().Deregister(server.GetService()); errOfDeregister != nil {
-			fmt.Printf("Deregister Service Error : %v \n", errOfDeregister)
+			log.Warn("Deregister Service Error:", errOfDeregister)
 			err = errOfDeregister.Error()
 			return
 		}
@@ -305,9 +301,8 @@ func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, rpcI
 		return
 	}
 	if callServerErr := server.CallNR(rpcInvokeResult); callServerErr.Error() == defaultRPC.DeadlineExceeded || callServerErr.Error() == defaultRPC.ClientClose {
-		//mu.RemoveSutDownService(server.GetService())
 		if errOfDeregister := mu.Registry().Deregister(server.GetService()); errOfDeregister != nil {
-			fmt.Printf("Deregister Service Error : %v \n", errOfDeregister)
+			log.Warn("Deregister Service Error:", errOfDeregister)
 			err = errOfDeregister
 			return
 		}

@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
-	logging "github.com/shihray/gserver/logging"
 	"github.com/shihray/gserver/server"
+	log "github.com/z9905080/gloger"
 )
 
 func NewService(opts ...Option) Service {
@@ -38,7 +38,7 @@ func (s *service) run(exit chan bool) {
 		case <-t.C:
 			err := s.opts.Server.ServiceRegister()
 			if err != nil {
-				logging.Warning("service run Server.Register error: ", err)
+				log.Warn("service run Server.Register error: ", err)
 			}
 		case <-exit:
 			t.Stop()

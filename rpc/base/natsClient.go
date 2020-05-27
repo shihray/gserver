@@ -7,16 +7,16 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	nats "github.com/nats-io/nats.go"
-	logging "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
 	mqrpc "github.com/shihray/gserver/rpc"
-	rpcpb "github.com/shihray/gserver/rpc/pb"
+	rpcPB "github.com/shihray/gserver/rpc/pb"
 	utils "github.com/shihray/gserver/utils"
+	log "github.com/z9905080/gloger"
 )
 
 type NatsClient struct {
 	callinfos         *sync.Map
-	cmutex            sync.Mutex
+	cmutex            *sync.RWMutex
 	callbackQueueName string
 	app               module.App
 	done              chan error
@@ -26,6 +26,7 @@ type NatsClient struct {
 
 func NewNatsClient(app module.App, session module.ServerSession) (client *NatsClient, err error) {
 	client = new(NatsClient)
+	client.cmutex = new(sync.RWMutex)
 	client.session = session
 	client.app = app
 	client.callinfos = new(sync.Map)
@@ -41,7 +42,7 @@ func (c *NatsClient) Delete(key string) (err error) {
 	return
 }
 
-func (c *NatsClient) CloseFch(fch chan rpcpb.ResultInfo) {
+func (c *NatsClient) CloseFch(fch chan rpcPB.ResultInfo) {
 	defer utils.RecoverFunc()
 	close(fch) // panic if ch is closed
 }
@@ -65,7 +66,7 @@ func (c *NatsClient) Done() (err error) {
 }
 
 // 消息請求
-func (c *NatsClient) Call(callInfo mqrpc.CallInfo, callback chan rpcpb.ResultInfo) error {
+func (c *NatsClient) Call(callInfo mqrpc.CallInfo, callback chan rpcPB.ResultInfo) error {
 	if c.callinfos == nil {
 		return fmt.Errorf("AMQPClient is closed")
 	}
@@ -112,13 +113,13 @@ func (c *NatsClient) onRequestHandle() error {
 		if err != nil && err == nats.ErrTimeout {
 			continue
 		} else if err != nil {
-			logging.Error("NatsClient error with %v", err.Error())
+			log.Error("NatsClient error with ", err.Error())
 			continue
 		}
 
 		resultInfo, err := c.UnmarshalResult(m.Data)
 		if err != nil {
-			logging.Error("資料解析錯誤 %v", err.Error())
+			log.Error("資料解析錯誤", err.Error())
 		} else {
 			correlationID := resultInfo.Cid
 			clientCallInfo, _ := c.callinfos.Load(correlationID)
@@ -128,7 +129,7 @@ func (c *NatsClient) onRequestHandle() error {
 				clientCallInfo.(ClinetCallInfo).call <- *resultInfo
 				c.CloseFch(clientCallInfo.(ClinetCallInfo).call)
 			} else {
-				logging.Warning("可能客戶端已超時了，但服務端處理完還給回調了 : [%s]", correlationID)
+				log.Warn("可能客戶端已超時了，但服務端處理完還給回調了:", correlationID)
 			}
 		}
 	}
@@ -137,8 +138,8 @@ func (c *NatsClient) onRequestHandle() error {
 }
 
 // 保存解碼後的數據，Value可以為任意數據類型
-func (c *NatsClient) UnmarshalResult(data []byte) (*rpcpb.ResultInfo, error) {
-	var resultInfo rpcpb.ResultInfo
+func (c *NatsClient) UnmarshalResult(data []byte) (*rpcPB.ResultInfo, error) {
+	var resultInfo rpcPB.ResultInfo
 	err := proto.Unmarshal(data, &resultInfo)
 	if err != nil {
 		return nil, err
@@ -147,9 +148,9 @@ func (c *NatsClient) UnmarshalResult(data []byte) (*rpcpb.ResultInfo, error) {
 	}
 }
 
-func (c *NatsClient) Unmarshal(data []byte) (*rpcpb.RPCInfo, error) {
+func (c *NatsClient) Unmarshal(data []byte) (*rpcPB.RPCInfo, error) {
 	//保存解碼後的數據，Value可以為任意數據類型
-	var rpcInfo rpcpb.RPCInfo
+	var rpcInfo rpcPB.RPCInfo
 	err := proto.Unmarshal(data, &rpcInfo)
 	if err != nil {
 		return nil, err
@@ -159,7 +160,7 @@ func (c *NatsClient) Unmarshal(data []byte) (*rpcpb.RPCInfo, error) {
 }
 
 // goroutine safe
-func (c *NatsClient) Marshal(rpcInfo *rpcpb.RPCInfo) ([]byte, error) {
+func (c *NatsClient) Marshal(rpcInfo *rpcPB.RPCInfo) ([]byte, error) {
 	b, err := proto.Marshal(rpcInfo)
 	return b, err
 }

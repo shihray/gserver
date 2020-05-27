@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	logging "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
 	mqRPC "github.com/shihray/gserver/rpc"
 	rpcPB "github.com/shihray/gserver/rpc/pb"
 	argsUtil "github.com/shihray/gserver/rpc/util"
 	utils "github.com/shihray/gserver/utils"
 	"github.com/shihray/gserver/utils/uuid"
+	log "github.com/z9905080/gloger"
 )
 
 const (
@@ -30,7 +30,7 @@ func NewRPCClient(app module.App, session module.ServerSession) (mqRPC.RPCClient
 	rpcClient.app = app
 	natsClient, err := NewNatsClient(app, session)
 	if err != nil {
-		logging.Error("Nats RPC Client Create Error Dial: ", err)
+		log.Error("Nats RPC Client Create Error Dial:", err)
 		return nil, err
 	}
 	rpcClient.natsClient = natsClient
@@ -122,7 +122,7 @@ func (c *RPCClient) Call(ctx context.Context, rpcInvokeResult *mqRPC.ResultInvok
 	start := time.Now()
 	r, errstr := c.CallArgs(ctx, funcName, argsType, args)
 	msg := fmt.Sprintf("RPC Call ServerID = %v Func = %v Elapsed = %v Result = %v ERROR = %v", c.natsClient.session.GetID(), funcName, time.Since(start), r, errstr)
-	logging.Debug(msg)
+	log.Debug(msg)
 
 	return r, errstr
 }
@@ -142,8 +142,8 @@ func (c *RPCClient) CallNR(rpcInvokeResult *mqRPC.ResultInvokeST) (err error) {
 	}
 	start := time.Now()
 	err = c.CallNRArgs(funcName, argsType, args)
-	msg := fmt.Sprintf("RPC Call ServerID = %v Func = %v Elapsed = %v Result = %v ERROR = %v", c.natsClient.session.GetID(), funcName, time.Since(start), err)
-	logging.Debug(msg)
+	msg := fmt.Sprintf("RPC Call ServerID = %v Func = %v Elapsed = %v ERROR = %v", c.natsClient.session.GetID(), funcName, time.Since(start), err)
+	log.Debug(msg)
 
 	return err
 }

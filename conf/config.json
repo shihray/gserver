@@ -1,11 +1,4 @@
 {
-  "Log":{
-    "level" : 7,
-    "file":{
-      "prefix" : "develop",
-      "daily" : true
-    }
-  },
   "Module": {
     "PING": [
       {

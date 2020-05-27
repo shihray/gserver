@@ -1,16 +1,15 @@
 package defaultrpc
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/nats-io/nats.go"
-	logging "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
 	mqrpc "github.com/shihray/gserver/rpc"
-	rpcpb "github.com/shihray/gserver/rpc/pb"
+	rpcPB "github.com/shihray/gserver/rpc/pb"
 	"github.com/shihray/gserver/utils"
+	log "github.com/z9905080/gloger"
 )
 
 type NatsServer struct {
@@ -70,7 +69,7 @@ func (s *NatsServer) onRequestHandle() error {
 		if err != nil && err == nats.ErrTimeout {
 			continue
 		} else if err != nil {
-			logging.Error("NatsServer error with :", err)
+			log.Error("NatsServer error:", err)
 			continue
 		}
 
@@ -85,7 +84,7 @@ func (s *NatsServer) onRequestHandle() error {
 			callInfo.Agent = s // 設置代理為 Nats Server
 			s.server.Call(*callInfo)
 		} else {
-			fmt.Println("error ", err)
+			log.Error("Unmarshal error:", err)
 		}
 	}
 
@@ -93,8 +92,8 @@ func (s *NatsServer) onRequestHandle() error {
 }
 
 // 保存解碼後的數據，Value可以為任意數據類型
-func (s *NatsServer) Unmarshal(data []byte) (*rpcpb.RPCInfo, error) {
-	var rpcInfo rpcpb.RPCInfo
+func (s *NatsServer) Unmarshal(data []byte) (*rpcPB.RPCInfo, error) {
+	var rpcInfo rpcPB.RPCInfo
 	err := proto.Unmarshal(data, &rpcInfo)
 	if err != nil {
 		return nil, err
@@ -104,7 +103,7 @@ func (s *NatsServer) Unmarshal(data []byte) (*rpcpb.RPCInfo, error) {
 }
 
 // goroutine safe
-func (s *NatsServer) MarshalResult(resultInfo rpcpb.ResultInfo) ([]byte, error) {
+func (s *NatsServer) MarshalResult(resultInfo rpcPB.ResultInfo) ([]byte, error) {
 	b, err := proto.Marshal(&resultInfo)
 	return b, err
 }

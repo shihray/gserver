@@ -9,7 +9,7 @@ import (
 	ModuleRegistry "github.com/shihray/gserver/registry"
 	moduleUtil "github.com/shihray/gserver/source/moduleutil"
 	CommonConf "github.com/shihray/gserver/utils/conf"
-	"log"
+	log "github.com/z9905080/gloger"
 	"net/http"
 	_ "net/http/pprof"
 )
@@ -26,7 +26,7 @@ func ListenServe() {
 	go func() {
 		ip := "0.0.0.0:6060"
 		if err := http.ListenAndServe(ip, nil); err != nil {
-			log.Printf("start pprof failed on %s\n", ip)
+			log.Error("start pprof failed on %s", ip)
 		}
 	}()
 }
@@ -35,28 +35,28 @@ func main() {
 	ListenServe()
 	// nats setting
 	// connect to multi servers
-	natsUrl := "nats://127.0.0.1:14222,nats://127.0.0.1:16222,nats://127.0.0.1:18222"
-	//natsUrl := CommonConf.GetEnv("NatsURL", nats.DefaultURL)
+	//natsUrl := "nats://127.0.0.1:14222,nats://127.0.0.1:16222,nats://127.0.0.1:18222"
+	natsUrl := CommonConf.GetEnv("NatsURL", nats.DefaultURL)
 
 	var opts = []nats.Option{
 		nats.DontRandomize(), // turn off randomizing the server pool.
 		nats.MaxReconnects(10000),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
-			log.Printf("Got disconnected! Reason: %q\n", err)
+			log.Error("Got disconnected! Reason: %q", err)
 		}),
 		nats.ReconnectHandler(func(nc *nats.Conn) {
-			log.Printf("Got reconnected to %v!\n", nc.ConnectedUrl())
+			log.Error("Got reconnected to %v", nc.ConnectedUrl())
 		}),
 		nats.ClosedHandler(func(nc *nats.Conn) {
-			log.Printf("Connection closed. Reason: %q\n", nc.LastError())
+			log.Error("Connection closed. Reason: %q", nc.LastError())
 		}),
 	}
 	nc, err := nats.Connect(natsUrl, opts...)
 	if err != nil {
-		log.Println("Nats Connect Error ", err.Error())
+		log.Error("Nats Connect Error ", err.Error())
 		return
 	}
-	log.Println("Connect to Nats Server... ", nc.ConnectedAddr())
+	log.Info("Connect to Nats Server... ", nc.ConnectedAddr())
 
 	var registryOption Module.Option
 	registersUrl := CommonConf.GetEnv("Registers_Url", "")
@@ -80,6 +80,8 @@ func main() {
 	//log.Println(registryOption)
 
 	app := CreateApp(
+		Module.LogMode(0),
+		Module.LogLevel(1),
 		Module.Version(version),  // version
 		Module.Nats(nc),          // nats
 		registryOption,           // register
@@ -92,7 +94,7 @@ func main() {
 		//pong.Module(),
 	)
 	if erro != nil {
-		log.Println("App Work[Run] Error", erro.Error())
+		log.Error("App Work[Run] Error", erro.Error())
 		return
 	}
 }

@@ -3,10 +3,8 @@ module github.com/shihray/gserver
 go 1.13
 
 require (
-	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58
 	github.com/golang/protobuf v1.3.4
 	github.com/gomodule/redigo v1.8.1
-	github.com/gorilla/websocket v1.4.1
 	github.com/hashicorp/consul/api v1.4.0
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9
@@ -15,4 +13,5 @@ require (
 	github.com/nats-io/nats.go v1.9.1
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
+	github.com/z9905080/gloger v0.0.2
 )

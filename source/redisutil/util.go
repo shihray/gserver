@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
-	Logging "github.com/shihray/gserver/logging"
+	log "github.com/z9905080/gloger"
 )
 
 // gRedisConnectionPool => key: host ,value: connectionPool
 var (
 	gRedisConnectionPool = make(map[string]*redis.Pool, 0)
-	mapLock              sync.Mutex
+	mapLock              = new(sync.RWMutex)
 )
 
 // getConnectionPool 取得連線池
@@ -34,7 +34,7 @@ func getConnectionPool(server string, password string) *redis.Pool {
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", server, redis.DialPassword(password))
 			if err != nil {
-				Logging.Error(err.Error())
+				log.Error(err.Error())
 				return nil, err
 			}
 			return c, err
@@ -42,7 +42,7 @@ func getConnectionPool(server string, password string) *redis.Pool {
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			_, err := c.Do("PING")
 			if err != nil {
-				//Logging.Warn(err.Error())
+				//log.Warn(err.Error())
 			}
 			return err
 		},

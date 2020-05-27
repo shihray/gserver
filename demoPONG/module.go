@@ -1,12 +1,13 @@
 package pong
 
 import (
-	log "github.com/shihray/gserver/logging"
+	"fmt"
 	module "github.com/shihray/gserver/module"
 	basemodule "github.com/shihray/gserver/module/base"
 	mqrpc "github.com/shihray/gserver/rpc"
 	Conf "github.com/shihray/gserver/utils/conf"
 	"github.com/shihray/gserver/utils/enum/moduleType"
+	log "github.com/z9905080/gloger"
 )
 
 var Module = func() module.Module {
@@ -42,7 +43,7 @@ func (p *Pong) OnInit(app module.App, settings *Conf.ModuleSettings) {
 		if res, err := p.RpcInvoke("PING", st); err != "" {
 			log.Debug(err)
 		} else {
-			log.Debug("%v: %v", p.GetType(), res)
+			log.Debug(fmt.Sprintf("%v: %v", p.GetType(), res))
 		}
 
 		return "I'm PONG, Return PING", ""

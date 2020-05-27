@@ -2,15 +2,15 @@ package argsutil
 
 import (
 	"fmt"
-	jsoniter "github.com/json-iterator/go"
+	jsonIter "github.com/json-iterator/go"
 	"reflect"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
-	logging "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
-	mqrpc "github.com/shihray/gserver/rpc"
+	mqRPC "github.com/shihray/gserver/rpc"
 	"github.com/shihray/gserver/utils"
+	log "github.com/z9905080/gloger"
 )
 
 var (
@@ -24,7 +24,7 @@ var (
 	STRING  = "string"  //string
 	MAP     = "map"     //map[string]interface{}
 	MAPSTR  = "mapstr"  //map[string]string{}
-	Marshal = "marshal" //mqrpc.Marshaler
+	Marshal = "marshal" //mqRPC.Marshaler
 	Proto   = "proto"   //proto.Message
 )
 
@@ -77,20 +77,20 @@ func ArgsTypeAnd2Bytes(app module.App, arg interface{}) (string, []byte, error) 
 		rv := reflect.ValueOf(arg)
 		//不是指针
 		if rv.Kind() != reflect.Ptr {
-			return "", nil, fmt.Errorf("Args2Bytes [%v] not registered to app.addrpcserialize(...) structure type or not *mqrpc.marshaler pointer type", reflect.TypeOf(arg))
+			return "", nil, fmt.Errorf("Args2Bytes [%v] not registered to app.addrpcserialize(...) structure type or not *mqRPC.marshaler pointer type", reflect.TypeOf(arg))
 		} else {
 			if rv.IsNil() {
 				//如果是nil则直接返回
 				return NULL, nil, nil
 			}
 
-			if b, err := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(arg); err != nil {
+			if b, err := jsonIter.ConfigCompatibleWithStandardLibrary.Marshal(arg); err != nil {
 				return "", nil, fmt.Errorf("args [%s] marshal error %v", reflect.TypeOf(arg), err)
 			} else {
 				return Marshal, b, nil
 			}
 
-			if v2, ok := arg.(mqrpc.Marshaler); ok {
+			if v2, ok := arg.(mqRPC.Marshaler); ok {
 				b, err := v2.Marshal()
 				if err != nil {
 					return "", nil, fmt.Errorf("args [%s] marshal error %v", reflect.TypeOf(arg), err)
@@ -104,7 +104,7 @@ func ArgsTypeAnd2Bytes(app module.App, arg interface{}) (string, []byte, error) 
 			if v2, ok := arg.(proto.Message); ok {
 				b, err := proto.Marshal(v2)
 				if err != nil {
-					logging.Error("proto.Marshal error")
+					log.Error("proto.Marshal error")
 					return "", nil, fmt.Errorf("args [%s] proto.Marshal error %v", reflect.TypeOf(arg), err)
 				}
 				if v2.String() != "" {

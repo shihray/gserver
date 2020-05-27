@@ -6,20 +6,20 @@ import (
 
 	module "github.com/shihray/gserver/module"
 	ModuleRegistry "github.com/shihray/gserver/registry"
-	mqrpc "github.com/shihray/gserver/rpc"
+	mqRPC "github.com/shihray/gserver/rpc"
 	defaultRPC "github.com/shihray/gserver/rpc/base"
 	CommonConf "github.com/shihray/gserver/utils/conf"
 
-	logging "github.com/shihray/gserver/logging"
 	"github.com/shihray/gserver/utils/addr"
+	log "github.com/z9905080/gloger"
 )
 
 type rpcServer struct {
 	exit chan chan error
 
-	sync.RWMutex
+	*sync.RWMutex
 	opts       Options
-	server     mqrpc.RPCServer
+	server     mqRPC.RPCServer
 	id         string
 	registered bool           // used for first registration
 	wg         sync.WaitGroup // graceful exit
@@ -28,8 +28,9 @@ type rpcServer struct {
 func newRpcServer(opts ...Option) Server {
 	options := newOptions(opts...)
 	return &rpcServer{
-		opts: options,
-		exit: make(chan chan error),
+		RWMutex: new(sync.RWMutex),
+		opts:    options,
+		exit:    make(chan chan error),
 	}
 }
 
@@ -52,7 +53,7 @@ func (s *rpcServer) Init(opts ...Option) error {
 func (s *rpcServer) OnInit(module module.Module, app module.App, settings *CommonConf.ModuleSettings) error {
 	server, err := defaultRPC.NewRPCServer(app, module) //默認會創建一個本地的RPC
 	if err != nil {
-		logging.Warning("Dial: %s", err)
+		log.Warn("Dial Error:", err)
 	}
 	s.server = server
 	s.opts.Address = server.Addr()
@@ -62,11 +63,11 @@ func (s *rpcServer) OnInit(module module.Module, app module.App, settings *Commo
 	return nil
 }
 
-func (s *rpcServer) SetListener(listener mqrpc.RPCListener) {
+func (s *rpcServer) SetListener(listener mqRPC.RPCListener) {
 	s.server.SetListener(listener)
 }
 
-func (s *rpcServer) SetGoroutineControl(control mqrpc.GoroutineControl) {
+func (s *rpcServer) SetGoroutineControl(control mqRPC.GoroutineControl) {
 	s.server.SetGoroutineControl(control)
 }
 
@@ -110,7 +111,7 @@ func (s *rpcServer) ServiceRegister() error {
 	s.Unlock()
 
 	if !registered {
-		logging.Info("Registering node: %v", service.ID)
+		log.Info("Registering node:", service.ID)
 	}
 
 	config.Registry.Clean(service.Name)
@@ -151,7 +152,7 @@ func (s *rpcServer) ServiceDeregister() error {
 		Address: addr,
 	}
 
-	logging.Info("Deregistering node: ", service.ID)
+	log.Info("Deregistering node: ", service.ID)
 	if err := config.Registry.Deregister(service); err != nil {
 		return err
 	}
@@ -171,12 +172,12 @@ func (s *rpcServer) Start() error {
 
 func (s *rpcServer) Stop() error {
 	if s.server != nil {
-		logging.Info("RPCServer closeing id(%s)", s.id)
+		log.Info("RPCServer closeing id(%s)", s.id)
 		err := s.server.Done()
 		if err != nil {
-			logging.Warning("RPCServer close fail id(%s) error(%s)", s.id, err)
+			log.Warn("RPCServer close fail id(%s) error(%s)", s.id, err)
 		} else {
-			logging.Info("RPCServer close success id(%s)", s.id)
+			log.Info("RPCServer close success id(%s)", s.id)
 		}
 		s.server = nil
 	}

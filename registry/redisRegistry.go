@@ -3,18 +3,18 @@ package registry
 import (
 	"github.com/gomodule/redigo/redis"
 	hash "github.com/mitchellh/hashstructure"
-	Logging "github.com/shihray/gserver/logging"
 	MyRedisUtil "github.com/shihray/gserver/source/redisutil"
+	log "github.com/z9905080/gloger"
 	"strings"
 	"sync"
 )
 
 type redisRegistry struct {
-	sync.Mutex // Lock
-	Address    string
-	opts       Options
-	connect    bool // connect enabled
-	register   map[string]uint64
+	*sync.RWMutex // Lock
+	Address       string
+	opts          Options
+	connect       bool // connect enabled
+	register      map[string]uint64
 }
 
 type RedisService struct {
@@ -29,6 +29,7 @@ func newRedisRegistry(opts ...Option) Registry {
 			RedisPassword: "",
 			GroupID:       1,
 		},
+		RWMutex:  new(sync.RWMutex),
 		register: make(map[string]uint64),
 	}
 	for _, o := range opts {
@@ -48,12 +49,12 @@ func (c *redisRegistry) Deregister(s *Service) error {
 	_, err := redisConn.Do("SREM", RegisterRedisKey.Title(c.Options().GroupID).Addr(s.Name), s.ID)
 	if err != nil && err != redis.ErrNil {
 		msg := "redis SREM Error, func: Deregister, 刪除陣列中元素錯誤 "
-		Logging.Error(msg + err.Error())
+		log.Error(msg + err.Error())
 		return err
 	}
 	if _, er := redisConn.Do("DEL", ModuleInfoRedisKey.Addr(s.ID)); er != nil {
 		msg := "redis DEL Error, func: Deregister, 刪除Key錯誤 "
-		Logging.Error(msg + err.Error())
+		log.Error(msg + err.Error())
 		return err
 	}
 
@@ -90,12 +91,12 @@ func (c *redisRegistry) Register(s *Service, opts ...RegisterOption) error {
 	//redisName := fmt.Sprintf("%v@%v", s.Name, s.Address)
 	if _, errOfRedis := redisConn.Do("SADD", RegisterRedisKey.Title(c.Options().GroupID).Addr(s.Name), s.ID); errOfRedis != nil {
 		msg := "redis SADD Error, func: Register, 加入列表失敗 "
-		Logging.Error(msg + errOfRedis.Error())
+		log.Error(msg + errOfRedis.Error())
 		return nil
 	}
 	if _, setKeyErr := redisConn.Do("SET", ModuleInfoRedisKey.Addr(s.ID), s.Address); setKeyErr != nil {
 		msg := "redis SET Error, func: Register, 加入列表失敗 "
-		Logging.Error(msg + setKeyErr.Error())
+		log.Error(msg + setKeyErr.Error())
 		return nil
 	}
 	// save our hash of the service
@@ -119,7 +120,7 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 		moduleList, err := redis.Strings(redisConn.Do("SMEMBERS", RegisterRedisKey.Title(c.Options().GroupID).Addr(name)))
 		if err != nil {
 			msg := "redis SMEMBERS Error, func: GetService, 取得Redis資料Key錯誤 "
-			Logging.Error(msg + err.Error())
+			log.Error(msg + err.Error())
 			return nil, err
 		}
 		for _, s := range moduleList {
@@ -128,14 +129,14 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 				_, err := redisConn.Do("SREM", RegisterRedisKey.Title(c.Options().GroupID).Addr(nameSplit[0]), name)
 				if err != nil && err != redis.ErrNil {
 					msg := "redis SREM Error, func: GetService, 刪除陣列中元素錯誤 "
-					Logging.Error(msg + err.Error())
+					log.Error(msg + err.Error())
 					return nil, err
 				}
 				continue
 			}
 			if err != nil {
 				msg := "redis GET Error, func: GetService, 取得Redis資料Key錯誤 "
-				Logging.Error(msg + err.Error())
+				log.Error(msg + err.Error())
 				return nil, err
 			}
 			hList[s] = addr
@@ -146,14 +147,14 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 			_, err := redisConn.Do("SREM", RegisterRedisKey.Title(c.Options().GroupID).Addr(nameSplit[0]), name)
 			if err != nil && err != redis.ErrNil {
 				msg := "redis SREM Error, func: GetService, 刪除陣列中元素錯誤 "
-				Logging.Error(msg + err.Error())
+				log.Error(msg + err.Error())
 				return nil, err
 			}
 			return nil, err
 		}
 		if err != nil {
 			msg := "redis GET Error, func: GetService, 取得Redis資料Key錯誤 "
-			Logging.Error(msg + err.Error())
+			log.Error(msg + err.Error())
 			return nil, err
 		}
 		hList[name] = addr
@@ -191,7 +192,7 @@ func (c *redisRegistry) ListServices() ([]*Service, error) {
 		serviceList, getListErr := redis.Strings(redisConn.Do("SMEMBERS", key))
 		if getListErr != nil {
 			msg := "redis KEYS Error, func: GetService, 取得Redis資料Key錯誤 "
-			Logging.Error(msg + getListErr.Error())
+			log.Error(msg + getListErr.Error())
 			return nil, getListErr
 		}
 
@@ -199,7 +200,7 @@ func (c *redisRegistry) ListServices() ([]*Service, error) {
 			addr, getErr := redis.String(redisConn.Do("GET", ModuleInfoRedisKey.Addr(id)))
 			if getErr != nil {
 				msg := "redis GET Error, func: GetService, 取得Redis資料錯誤 "
-				Logging.Error(msg + getErr.Error())
+				log.Error(msg + getErr.Error())
 				return nil, getErr
 			}
 			services = append(services, &Service{
@@ -224,7 +225,7 @@ func (c *redisRegistry) ConnectRedis() (redis.Conn, error) {
 	redisPool, getPoolErr := MyRedisUtil.NewConnect(c.Options().RedisHost, c.Options().RedisPassword)
 	if getPoolErr != nil {
 		msg := "redis 連線錯誤,func: Register, 取得連線池失敗 "
-		Logging.Error(msg + getPoolErr.Error())
+		log.Error(msg + getPoolErr.Error())
 		return nil, getPoolErr
 	}
 	return redisPool.Get(), getPoolErr

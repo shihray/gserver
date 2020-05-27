@@ -83,7 +83,7 @@ var (
 	n   int
 	b   []byte
 	c   cipher.Block
-	m   sync.Mutex
+	m   sync.RWMutex
 )
 
 func init() {

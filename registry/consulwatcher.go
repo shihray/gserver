@@ -17,7 +17,7 @@ type consulWatcher struct {
 	next chan *Result
 	exit chan bool
 
-	sync.RWMutex
+	*sync.RWMutex
 	services map[string][]*Service
 }
 
@@ -28,6 +28,7 @@ func newConsulWatcher(cr *consulRegistry, opts ...WatchOption) (Watcher, error) 
 	}
 
 	cw := &consulWatcher{
+		RWMutex:  new(sync.RWMutex),
 		r:        cr,
 		wo:       wo,
 		exit:     make(chan bool),

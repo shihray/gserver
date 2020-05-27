@@ -2,45 +2,45 @@ package defaultrpc
 
 import (
 	"fmt"
-	jsoniter "github.com/json-iterator/go"
+	jsonIter "github.com/json-iterator/go"
 	"reflect"
 	"runtime"
 	"sync"
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	logging "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
-	mqrpc "github.com/shihray/gserver/rpc"
-	rpcpb "github.com/shihray/gserver/rpc/pb"
-	argsutil "github.com/shihray/gserver/rpc/util"
+	mqRPC "github.com/shihray/gserver/rpc"
+	rpcPB "github.com/shihray/gserver/rpc/pb"
+	argsUtil "github.com/shihray/gserver/rpc/util"
 	utils "github.com/shihray/gserver/utils"
+	log "github.com/z9905080/gloger"
 )
 
 type RPCServer struct {
 	module       module.Module
 	app          module.App
-	functions    map[string]*mqrpc.FunctionInfo
+	functions    map[string]*mqRPC.FunctionInfo
 	natsServer   *NatsServer
-	mqChan       chan mqrpc.CallInfo // 接收到請求信息的隊列
+	mqChan       chan mqRPC.CallInfo // 接收到請求信息的隊列
 	wg           sync.WaitGroup      // 任務阻塞
 	callChanDone chan error
-	listener     mqrpc.RPCListener
-	control      mqrpc.GoroutineControl // 控制模塊可同時開啟的最大協程數
+	listener     mqRPC.RPCListener
+	control      mqRPC.GoroutineControl // 控制模塊可同時開啟的最大協程數
 	executing    int64                  // 正在執行的goroutine數量
 }
 
-func NewRPCServer(app module.App, module module.Module) (mqrpc.RPCServer, error) {
+func NewRPCServer(app module.App, module module.Module) (mqRPC.RPCServer, error) {
 	rpcServer := new(RPCServer)
 	rpcServer.app = app
 	rpcServer.module = module
 	rpcServer.callChanDone = make(chan error)
-	rpcServer.functions = make(map[string]*mqrpc.FunctionInfo)
-	rpcServer.mqChan = make(chan mqrpc.CallInfo)
+	rpcServer.functions = make(map[string]*mqRPC.FunctionInfo)
+	rpcServer.mqChan = make(chan mqRPC.CallInfo)
 
 	natsServer, err := NewNatsServer(app, rpcServer)
 	if err != nil {
-		logging.Error("Nats RPC Server Create Dial Error: ", err)
+		log.Error("Nats RPC Server Create Dial Error: ", err)
 	}
 	rpcServer.natsServer = natsServer
 
@@ -51,11 +51,11 @@ func (s *RPCServer) Addr() string {
 	return s.natsServer.Addr()
 }
 
-func (s *RPCServer) SetListener(listener mqrpc.RPCListener) {
+func (s *RPCServer) SetListener(listener mqRPC.RPCListener) {
 	s.listener = listener
 }
 
-func (s *RPCServer) SetGoroutineControl(control mqrpc.GoroutineControl) {
+func (s *RPCServer) SetGoroutineControl(control mqRPC.GoroutineControl) {
 	s.control = control
 }
 
@@ -73,7 +73,7 @@ func (s *RPCServer) Register(id string, f interface{}) {
 		panic(fmt.Sprintf("function id %v: already registered", id))
 	}
 
-	s.functions[id] = &mqrpc.FunctionInfo{
+	s.functions[id] = &mqRPC.FunctionInfo{
 		Function:  reflect.ValueOf(f),
 		Goroutine: false,
 	}
@@ -86,7 +86,7 @@ func (s *RPCServer) RegisterGO(id string, f interface{}) {
 		panic(fmt.Sprintf("function id %v: already registered", id))
 	}
 
-	s.functions[id] = &mqrpc.FunctionInfo{
+	s.functions[id] = &mqRPC.FunctionInfo{
 		Function:  reflect.ValueOf(f),
 		Goroutine: true,
 	}
@@ -102,21 +102,21 @@ func (s *RPCServer) Done() (err error) {
 	return
 }
 
-func (s *RPCServer) Call(callInfo mqrpc.CallInfo) error {
+func (s *RPCServer) Call(callInfo mqRPC.CallInfo) error {
 	s.runFunc(callInfo)
 	return nil
 }
 
-func (s *RPCServer) doCallback(callInfo mqrpc.CallInfo) {
+func (s *RPCServer) doCallback(callInfo mqRPC.CallInfo) {
 	if callInfo.RpcInfo.Reply {
 		// 需要回覆的才回覆
-		err := callInfo.Agent.(mqrpc.MQServer).Callback(callInfo)
+		err := callInfo.Agent.(mqRPC.MQServer).Callback(callInfo)
 		if err != nil {
-			logging.Warning(fmt.Sprintf("rpc callback erro :\n%s", err.Error()))
+			log.Warn(fmt.Sprintf("rpc callback erro :\n%s", err.Error()))
 		}
 	} else {
 		if callInfo.Result.Error != "" {
-			logging.Warning(fmt.Sprintf("rpc callback erro :\n%s", callInfo.Result.Error))
+			log.Warn(fmt.Sprintf("rpc callback erro :\n%s", callInfo.Result.Error))
 		}
 	}
 	if s.app.Options().ServerRPCHandler != nil {
@@ -125,11 +125,11 @@ func (s *RPCServer) doCallback(callInfo mqrpc.CallInfo) {
 }
 
 // if _func is not a function or para num and type not match,it will cause panic
-func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
+func (s *RPCServer) runFunc(callInfo mqRPC.CallInfo) {
 	start := time.Now()
 	iErrorCallback := func(Cid string, Error string) {
 		// print all error logs
-		resultInfo := rpcpb.NewResultInfo(Cid, Error, argsutil.NULL, nil)
+		resultInfo := rpcPB.NewResultInfo(Cid, Error, argsUtil.NULL, nil)
 		callInfo.Result = *resultInfo
 		callInfo.ExecTime = time.Since(start).Nanoseconds()
 		s.doCallback(callInfo)
@@ -181,7 +181,7 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 				l := runtime.Stack(buf, false)
 				errstr := string(buf[:l])
 				allError := fmt.Sprintf("%s rpc func(%s) error %s\n ----Stack----\n%s", s.module.GetType(), callInfo.RpcInfo.Fn, rn, errstr)
-				logging.Error(allError)
+				log.Error(allError)
 				iErrorCallback(callInfo.RpcInfo.Cid, allError)
 			}
 		}()
@@ -201,11 +201,11 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 			}
 
 			jsonToolElem := reflect.New(f.Type().In(k))
-			if err := jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal(params[k], jsonToolElem.Interface()); err == nil {
+			if err := jsonIter.ConfigCompatibleWithStandardLibrary.Unmarshal(params[k], jsonToolElem.Interface()); err == nil {
 				in[k] = jsonToolElem.Elem()
 			}
 
-			if pb, ok := elem.Interface().(mqrpc.Marshaler); ok {
+			if pb, ok := elem.Interface().(mqRPC.Marshaler); ok {
 				err := pb.Unmarshal(params[k])
 				if err != nil {
 					iErrorCallback(callInfo.RpcInfo.Cid, err.Error())
@@ -232,8 +232,8 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 					in[k] = elem.Elem()
 				}
 			} else {
-				// 不是Marshaler 才嘗試用 argsutil 解析
-				ty, err := argsutil.Bytes2Args(s.app, v, params[k])
+				// 不是Marshaler 才嘗試用 argsUtil 解析
+				ty, err := argsUtil.Bytes2Args(s.app, v, params[k])
 				if err != nil {
 					iErrorCallback(callInfo.RpcInfo.Cid, err.Error())
 					return
@@ -247,9 +247,9 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 						in[k] = reflect.ValueOf(ty)
 					} else {
 						elem := reflect.New(f.Type().In(k))
-						err := jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal(v2, elem.Interface())
+						err := jsonIter.ConfigCompatibleWithStandardLibrary.Unmarshal(v2, elem.Interface())
 						if err != nil {
-							logging.Error(fmt.Sprintf("%v []uint8--> %v error with='%v'", callInfo.RpcInfo.Fn, f.Type().In(k), err))
+							log.Error(fmt.Sprintf("%v []uint8--> %v error with='%v'", callInfo.RpcInfo.Fn, f.Type().In(k), err))
 							in[k] = reflect.ValueOf(ty)
 						} else {
 							in[k] = elem.Elem()
@@ -297,12 +297,12 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 			)
 			return
 		}
-		argsType, args, err := argsutil.ArgsTypeAnd2Bytes(s.app, rs[0])
+		argsType, args, err := argsUtil.ArgsTypeAnd2Bytes(s.app, rs[0])
 		if err != nil {
 			iErrorCallback(callInfo.RpcInfo.Cid, err.Error())
 			return
 		}
-		resultInfo := rpcpb.NewResultInfo(
+		resultInfo := rpcPB.NewResultInfo(
 			callInfo.RpcInfo.Cid,
 			rErr,
 			argsType,
@@ -312,7 +312,7 @@ func (s *RPCServer) runFunc(callInfo mqrpc.CallInfo) {
 		callInfo.ExecTime = time.Since(start).Nanoseconds()
 		s.doCallback(callInfo)
 		msg := fmt.Sprintf("RPC Exec ModuleType = %v Func = %v Elapsed = %v", s.module.GetType(), callInfo.RpcInfo.Fn, time.Since(start))
-		logging.Debug(msg)
+		log.Debug(msg)
 		if s.listener != nil {
 			s.listener.OnComplete(callInfo.RpcInfo.Fn, &callInfo, resultInfo, time.Since(start).Nanoseconds())
 		}

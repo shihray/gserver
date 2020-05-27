@@ -12,10 +12,9 @@ type Option func(*Options)
 type Options struct {
 	Nats             *CommonNats.Conn
 	Version          string
-	Debug            bool
-	WorkDir          string
 	ConfPath         string
-	LogDir           string
+	LogMode          int
+	LogLevel         int
 	BIDir            string
 	Registry         registry.Registry
 	ClientRPChandler ClientRPChandler
@@ -27,33 +26,27 @@ type ClientRPChandler func(app App, server registry.Service, rpcinfo rpcPB.RPCIn
 
 type ServerRPCHandler func(app App, module Module, callInfo mqrpc.CallInfo)
 
-func Debug(v bool) Option {
-	return func(o *Options) {
-		o.Debug = v
-	}
-}
-
 func Version(v string) Option {
 	return func(o *Options) {
 		o.Version = v
 	}
 }
 
-func WorkDir(v string) Option {
+func LogMode(v int) Option {
 	return func(o *Options) {
-		o.WorkDir = v
+		o.LogMode = v
+	}
+}
+
+func LogLevel(v int) Option {
+	return func(o *Options) {
+		o.LogLevel = v
 	}
 }
 
 func Configure(v string) Option {
 	return func(o *Options) {
 		o.ConfPath = v
-	}
-}
-
-func LogDir(v string) Option {
-	return func(o *Options) {
-		o.LogDir = v
 	}
 }
 

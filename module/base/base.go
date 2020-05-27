@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	log "github.com/shihray/gserver/logging"
 	module "github.com/shihray/gserver/module"
 	mqrpc "github.com/shihray/gserver/rpc"
 	rpcPB "github.com/shihray/gserver/rpc/pb"
@@ -19,6 +18,7 @@ import (
 	"github.com/shihray/gserver/service"
 	"github.com/shihray/gserver/utils"
 	"github.com/shihray/gserver/utils/conf"
+	log "github.com/z9905080/gloger"
 )
 
 type StatisticalMethod struct {
@@ -42,7 +42,7 @@ type BaseModule struct {
 	service     service.Service
 	listener    mqrpc.RPCListener
 	statistical map[string]*StatisticalMethod //統計
-	rwMutex     sync.RWMutex
+	rwMutex     *sync.RWMutex
 	routineLock chan bool
 }
 
@@ -74,6 +74,7 @@ func (m *BaseModule) OnAppConfigurationLoaded(app module.App) {
 
 func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings *conf.ModuleSettings, opt ...server.Option) {
 	//初始化模塊
+	m.rwMutex = new(sync.RWMutex)
 	m.App = app
 	m.subclass = subclass
 	m.settings = settings

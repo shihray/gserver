@@ -22,7 +22,7 @@ type consulRegistry struct {
 	// connect enabled
 	connect bool
 
-	sync.Mutex
+	*sync.RWMutex
 	register map[string]uint64
 }
 
@@ -118,6 +118,7 @@ func configure(c *consulRegistry, opts ...Option) {
 
 func newConsulRegistry(opts ...Option) Registry {
 	cr := &consulRegistry{
+		RWMutex:  new(sync.RWMutex),
 		opts:     Options{},
 		register: make(map[string]uint64),
 	}
