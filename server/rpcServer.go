@@ -111,14 +111,12 @@ func (s *rpcServer) ServiceRegister() error {
 	s.Unlock()
 
 	if !registered {
+		config.Registry.Clean(service.Name)
 		log.Info("Registering node:", service.ID)
 	}
 
-	config.Registry.Clean(service.Name)
 	//config.Registry.ListServices()
-	// create ModuleRegistry options
-	rOpts := []ModuleRegistry.RegisterOption{}
-	if err := config.Registry.Register(service, rOpts...); err != nil {
+	if err := config.Registry.Register(service); err != nil {
 		return err
 	}
 
@@ -172,7 +170,7 @@ func (s *rpcServer) Start() error {
 
 func (s *rpcServer) Stop() error {
 	if s.server != nil {
-		log.InfoF("RPCServer closeing id(%s)", s.id)
+		log.InfoF("RPCServer closing id(%s)", s.id)
 		err := s.server.Done()
 		if err != nil {
 			log.WarnF("RPCServer close fail id(%s) error(%s)", s.id, err)

@@ -102,6 +102,10 @@ func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings 
 	if opts.RoutineCount == 0 {
 		opt = append(opt, server.RoutineCount(app.Options().RoutineCount))
 	}
+
+	if opts.RegisterInterval == 0 {
+		opt = append(opt, server.RegisterInterval(app.Options().RegisterInterval))
+	}
 	//
 	m.CheckHeartbeat(subclass.GetType())
 
@@ -120,6 +124,7 @@ func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings 
 	m.service = service.NewService(
 		service.Server(rpcServer),
 		service.Context(ctx),
+		service.RegisterInterval(app.Options().RegisterInterval),
 	)
 
 	go m.service.Run()

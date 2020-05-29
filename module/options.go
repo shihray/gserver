@@ -5,6 +5,7 @@ import (
 	"github.com/shihray/gserver/registry"
 	mqrpc "github.com/shihray/gserver/rpc"
 	rpcPB "github.com/shihray/gserver/rpc/pb"
+	"time"
 )
 
 type Option func(*Options)
@@ -20,6 +21,8 @@ type Options struct {
 	ClientRPChandler ClientRPChandler
 	ServerRPCHandler ServerRPCHandler
 	RoutineCount     int
+	// Register loop interval
+	RegisterInterval time.Duration
 }
 
 type ClientRPChandler func(app App, server registry.Service, rpcinfo rpcPB.RPCInfo, result interface{}, err string, exec_time int64)
@@ -61,6 +64,12 @@ func Nats(nc *CommonNats.Conn) Option {
 func Registry(r registry.Registry) Option {
 	return func(o *Options) {
 		o.Registry = r
+	}
+}
+
+func RegisterInterval(t time.Duration) Option {
+	return func(o *Options) {
+		o.RegisterInterval = t
 	}
 }
 

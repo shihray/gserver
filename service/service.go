@@ -75,12 +75,6 @@ func (s *service) String() string {
 }
 
 func (s *service) Start() error {
-	for _, fn := range s.opts.BeforeStart {
-		if err := fn(); err != nil {
-			return err
-		}
-	}
-
 	if err := s.opts.Server.Start(); err != nil {
 		return err
 	}
@@ -89,24 +83,10 @@ func (s *service) Start() error {
 		return err
 	}
 
-	for _, fn := range s.opts.AfterStart {
-		if err := fn(); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
 func (s *service) Stop() error {
-	var gErr error
-
-	for _, fn := range s.opts.BeforeStop {
-		if err := fn(); err != nil {
-			gErr = err
-		}
-	}
-
 	if err := s.opts.Server.ServiceDeregister(); err != nil {
 		return err
 	}
@@ -114,14 +94,7 @@ func (s *service) Stop() error {
 	if err := s.opts.Server.Stop(); err != nil {
 		return err
 	}
-
-	for _, fn := range s.opts.AfterStop {
-		if err := fn(); err != nil {
-			gErr = err
-		}
-	}
-
-	return gErr
+	return nil
 }
 
 func (s *service) Run() error {
@@ -133,13 +106,8 @@ func (s *service) Run() error {
 	ex := make(chan bool)
 	go s.run(ex)
 
-	// ch := make(chan os.Signal, 1)
-	// signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
-
 	select {
 	// wait on kill signal
-	// case <-ch:
-	// wait on context cancel
 	case <-s.opts.Context.Done():
 	}
 

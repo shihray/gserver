@@ -11,6 +11,7 @@ import (
 	log "github.com/z9905080/gloger"
 	"net/http"
 	_ "net/http/pprof"
+	"time"
 )
 
 const version = "1"
@@ -78,12 +79,13 @@ func main() {
 
 	routineCount := 100
 	app := CreateApp(
-		Module.LogMode(int(log.Stdout)),   // log mode 0:Stdout 1:file
-		Module.LogLevel(int(log.INFO)),    // 0:debug 1:Info 2:Warn 3:Error 4:Fatal
-		Module.Version(version),           // version
-		Module.Nats(nc),                   // nats
-		registryOption,                    // register
-		Module.RoutineCount(routineCount), // routine size
+		Module.LogMode(int(log.Stdout)),        // log mode 0:Stdout 1:file
+		Module.LogLevel(int(log.DEBUG)),        // 0:debug 1:Info 2:Warn 3:Error 4:Fatal
+		Module.Version(version),                // version
+		Module.Nats(nc),                        // nats
+		registryOption,                         // register
+		Module.RegisterInterval(1*time.Second), // RegisterInterval
+		Module.RoutineCount(routineCount),      // routine size
 	)
 	// init modules
 	erro := app.Run(

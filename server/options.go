@@ -3,16 +3,18 @@ package server
 import (
 	"context"
 	"github.com/shihray/gserver/registry"
+	"time"
 )
 
 type Options struct {
 	Registry registry.Registry
 
-	Metadata map[string]string
-	Name     string
-	Address  string
-	ID       string
-	Version  string
+	Metadata         map[string]string
+	Name             string
+	Address          string
+	ID               string
+	Version          string
+	RegisterInterval time.Duration
 	// Other options for implementations of the interface
 	// can be stored in a context
 	Context context.Context
@@ -95,6 +97,13 @@ func Metadata(md map[string]string) Option {
 func Registry(r registry.Registry) Option {
 	return func(o *Options) {
 		o.Registry = r
+	}
+}
+
+// RegisterInterval specifies the interval on which to re-register
+func RegisterInterval(t time.Duration) Option {
+	return func(o *Options) {
+		o.RegisterInterval = t
 	}
 }
 

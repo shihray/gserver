@@ -23,12 +23,6 @@ type Options struct {
 	// Register loop interval
 	RegisterInterval time.Duration
 
-	// Before and After funcs
-	BeforeStart []func() error
-	BeforeStop  []func() error
-	AfterStart  []func() error
-	AfterStop   []func() error
-
 	// Other options for implementations of the interface
 	// can be stored in a context
 	Context context.Context
@@ -61,48 +55,8 @@ func Server(s server.Server) Option {
 	}
 }
 
-// Name of the service
-func Name(n string) Option {
+func RegisterInterval(t time.Duration) Option {
 	return func(o *Options) {
-		o.Server.Init(server.Name(n))
-	}
-}
-
-// Version of the service
-func Version(v string) Option {
-	return func(o *Options) {
-		o.Server.Init(server.Version(v))
-	}
-}
-
-// Metadata associated with the service
-func Metadata(md map[string]string) Option {
-	return func(o *Options) {
-		o.Server.Init(server.Metadata(md))
-	}
-}
-
-// Before and Afters
-func BeforeStart(fn func() error) Option {
-	return func(o *Options) {
-		o.BeforeStart = append(o.BeforeStart, fn)
-	}
-}
-
-func BeforeStop(fn func() error) Option {
-	return func(o *Options) {
-		o.BeforeStop = append(o.BeforeStop, fn)
-	}
-}
-
-func AfterStart(fn func() error) Option {
-	return func(o *Options) {
-		o.AfterStart = append(o.AfterStart, fn)
-	}
-}
-
-func AfterStop(fn func() error) Option {
-	return func(o *Options) {
-		o.AfterStop = append(o.AfterStop, fn)
+		o.RegisterInterval = t
 	}
 }
