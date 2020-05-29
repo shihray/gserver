@@ -1,7 +1,6 @@
 package main
 
 import (
-	//_ "github.com/joho/godotenv/autoload"
 	"github.com/nats-io/nats.go"
 	ping "github.com/shihray/gserver/demoPING"
 	pong "github.com/shihray/gserver/demoPONG"
