@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"runtime"
 
 	"github.com/shihray/gserver/utils/conf"
@@ -15,9 +14,9 @@ func RecoverFunc() {
 		if conf.LenStackBuf > 0 {
 			buf := make([]byte, conf.LenStackBuf)
 			l := runtime.Stack(buf, false)
-			log.Error(fmt.Sprintf("%v: %s", r, buf[:l]))
+			log.ErrorF("%v: %s", r, buf[:l])
 		} else {
-			log.Error(fmt.Sprintf("%v", r))
+			log.ErrorF("%v", r)
 		}
 	}
 }

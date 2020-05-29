@@ -172,12 +172,12 @@ func (s *rpcServer) Start() error {
 
 func (s *rpcServer) Stop() error {
 	if s.server != nil {
-		log.Info("RPCServer closeing id(%s)", s.id)
+		log.InfoF("RPCServer closeing id(%s)", s.id)
 		err := s.server.Done()
 		if err != nil {
-			log.Warn("RPCServer close fail id(%s) error(%s)", s.id, err)
+			log.WarnF("RPCServer close fail id(%s) error(%s)", s.id, err)
 		} else {
-			log.Info("RPCServer close success id(%s)", s.id)
+			log.InfoF("RPCServer close success id(%s)", s.id)
 		}
 		s.server = nil
 	}

@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "github.com/joho/godotenv/autoload"
+	//_ "github.com/joho/godotenv/autoload"
 	"github.com/nats-io/nats.go"
 	ping "github.com/shihray/gserver/demoPING"
 	pong "github.com/shihray/gserver/demoPONG"
@@ -26,7 +26,7 @@ func ListenServe() {
 	go func() {
 		ip := "0.0.0.0:6060"
 		if err := http.ListenAndServe(ip, nil); err != nil {
-			log.Error("start pprof failed on %s", ip)
+			log.ErrorF("start pprof failed on %s", ip)
 		}
 	}()
 }
@@ -37,18 +37,18 @@ func main() {
 	// connect to multi servers
 	//natsUrl := "nats://127.0.0.1:14222,nats://127.0.0.1:16222,nats://127.0.0.1:18222"
 	natsUrl := CommonConf.GetEnv("NatsURL", nats.DefaultURL)
-
+	registersUrl := CommonConf.GetEnv("Registers_Url", "")
 	var opts = []nats.Option{
 		nats.DontRandomize(), // turn off randomizing the server pool.
 		nats.MaxReconnects(10000),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
-			log.Error("Got disconnected! Reason: %q", err)
+			log.ErrorF("Got disconnected! Reason: %q", err)
 		}),
 		nats.ReconnectHandler(func(nc *nats.Conn) {
-			log.Error("Got reconnected to %v", nc.ConnectedUrl())
+			log.ErrorF("Got reconnected to %v", nc.ConnectedUrl())
 		}),
 		nats.ClosedHandler(func(nc *nats.Conn) {
-			log.Error("Connection closed. Reason: %q", nc.LastError())
+			log.ErrorF("Connection closed. Reason: %q", nc.LastError())
 		}),
 	}
 	nc, err := nats.Connect(natsUrl, opts...)
@@ -59,9 +59,8 @@ func main() {
 	log.Info("Connect to Nats Server... ", nc.ConnectedAddr())
 
 	var registryOption Module.Option
-	registersUrl := CommonConf.GetEnv("Registers_Url", "")
 	if registersUrl != "" {
-		// consol註冊
+		// consul註冊
 		rsConsul := ModuleRegistry.NewConsulRegistry(func(op *ModuleRegistry.Options) {
 			op.Addrs = []string{
 				registersUrl,
@@ -77,21 +76,21 @@ func main() {
 		})
 		registryOption = Module.Registry(rsRedis)
 	}
-	//log.Println(registryOption)
 
+	routineCount := 100
 	app := CreateApp(
-		Module.LogMode(0),
-		Module.LogLevel(1),
-		Module.Version(version),  // version
-		Module.Nats(nc),          // nats
-		registryOption,           // register
-		Module.RoutineCount(100), // routine size
+		Module.LogMode(int(log.Stdout)),   // log mode 0:Stdout 1:file
+		Module.LogLevel(int(log.INFO)),    // 0:debug 1:Info 2:Warn 3:Error 4:Fatal
+		Module.Version(version),           // version
+		Module.Nats(nc),                   // nats
+		registryOption,                    // register
+		Module.RoutineCount(routineCount), // routine size
 	)
-
+	// init modules
 	erro := app.Run(
 		ping.Module(),
 		pong.Module(),
-		//pong.Module(),
+		pong.Module(),
 	)
 	if erro != nil {
 		log.Error("App Work[Run] Error", erro.Error())

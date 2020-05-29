@@ -112,11 +112,11 @@ func (s *RPCServer) doCallback(callInfo mqRPC.CallInfo) {
 		// 需要回覆的才回覆
 		err := callInfo.Agent.(mqRPC.MQServer).Callback(callInfo)
 		if err != nil {
-			log.Warn(fmt.Sprintf("rpc callback erro :\n%s", err.Error()))
+			log.WarnF("rpc callback erro :\n%s", err.Error())
 		}
 	} else {
 		if callInfo.Result.Error != "" {
-			log.Warn(fmt.Sprintf("rpc callback erro :\n%s", callInfo.Result.Error))
+			log.WarnF("rpc callback erro :\n%s", callInfo.Result.Error)
 		}
 	}
 	if s.app.Options().ServerRPCHandler != nil {
@@ -249,7 +249,7 @@ func (s *RPCServer) runFunc(callInfo mqRPC.CallInfo) {
 						elem := reflect.New(f.Type().In(k))
 						err := jsonIter.ConfigCompatibleWithStandardLibrary.Unmarshal(v2, elem.Interface())
 						if err != nil {
-							log.Error(fmt.Sprintf("%v []uint8--> %v error with='%v'", callInfo.RpcInfo.Fn, f.Type().In(k), err))
+							log.ErrorF("%v []uint8--> %v error with='%v'", callInfo.RpcInfo.Fn, f.Type().In(k), err)
 							in[k] = reflect.ValueOf(ty)
 						} else {
 							in[k] = elem.Elem()
