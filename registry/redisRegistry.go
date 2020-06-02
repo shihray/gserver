@@ -263,9 +263,11 @@ func (c *redisRegistry) Clean(typeName string) error {
 	}
 	// 比對list & Infos 資料，並將找不到的移除
 	for _, key := range keys {
+		// gserver:module:info:moduleType@hashID
 		splitKey := strings.Split(key, ":")
-		if _, ok := isExistMap[key]; !ok {
-			name := splitKey[len(splitKey)-1]
+		// moduleType@hashID
+		name := splitKey[len(splitKey)-1]
+		if _, ok := isExistMap[name]; !ok {
 			// 移除list中未對應 address資料
 			if _, sremErr := redisConn.Do(SRem, RegisterRedisKey.Title(c.Options().GroupID).Addr(typeName), name); sremErr != nil {
 				return sremErr
