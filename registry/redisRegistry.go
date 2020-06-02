@@ -104,7 +104,7 @@ func (c *redisRegistry) Register(s *Service, opts ...RegisterOption) error {
 		log.Error(msg + errOfRedis.Error())
 		return nil
 	}
-	if _, setKeyErr := redisConn.Do(Set, ModuleInfoRedisKey.Addr(s.ID), s.Address); setKeyErr != nil {
+	if _, setKeyErr := redisConn.Do(Set, ModuleInfoRedisKey.Title(c.Options().GroupID).Addr(s.ID), s.Address); setKeyErr != nil {
 		msg := "redis SET Error, func: Register, 加入列表失敗 "
 		log.Error(msg + setKeyErr.Error())
 		return nil
@@ -134,7 +134,7 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 			return nil, err
 		}
 		for _, s := range moduleList {
-			addr, err := redis.String(redisConn.Do(Get, ModuleInfoRedisKey.Addr(s)))
+			addr, err := redis.String(redisConn.Do(Get, ModuleInfoRedisKey.Title(c.Options().GroupID).Addr(s)))
 			if err == redis.ErrNil {
 				_, err := redisConn.Do(SRem, RegisterRedisKey.Title(c.Options().GroupID).Addr(nameSplit[0]), name)
 				if err != nil && err != redis.ErrNil {
@@ -152,7 +152,7 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 			hList[s] = addr
 		}
 	} else {
-		addr, err := redis.String(redisConn.Do(Get, ModuleInfoRedisKey.Addr(name)))
+		addr, err := redis.String(redisConn.Do(Get, ModuleInfoRedisKey.Title(c.Options().GroupID).Addr(name)))
 		if err == redis.ErrNil {
 			_, err := redisConn.Do(SRem, RegisterRedisKey.Title(c.Options().GroupID).Addr(nameSplit[0]), name)
 			if err != nil && err != redis.ErrNil {
@@ -207,7 +207,7 @@ func (c *redisRegistry) ListServices() ([]*Service, error) {
 		}
 
 		for _, id := range serviceList {
-			addr, getErr := redis.String(redisConn.Do(Get, ModuleInfoRedisKey.Addr(id)))
+			addr, getErr := redis.String(redisConn.Do(Get, ModuleInfoRedisKey.Title(c.Options().GroupID).Addr(id)))
 			if getErr != nil {
 				msg := "redis GET Error, func: GetService, 取得Redis資料錯誤 "
 				log.Error(msg + getErr.Error())
@@ -257,7 +257,7 @@ func (c *redisRegistry) Clean(typeName string) error {
 		isExistMap[key] = true
 	}
 	// 找尋所有module Info
-	keys, infoKeysErr := redis.Strings(redisConn.Do(Keys, ModuleInfoRedisKey.Addr(typeName+"*")))
+	keys, infoKeysErr := redis.Strings(redisConn.Do(Keys, ModuleInfoRedisKey.Title(c.Options().GroupID).Addr(typeName+"*")))
 	if infoKeysErr != nil {
 		return infoKeysErr
 	}
