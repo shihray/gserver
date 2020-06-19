@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const version = "1"
+const version = "0.0.14"
 
 // 創建模組
 func CreateApp(opts ...Module.Option) Module.App {

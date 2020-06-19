@@ -17,18 +17,24 @@ type NatsServer struct {
 	addr     string
 	app      module.App
 	server   *RPCServer
-	done     chan error
+	done     chan bool
+	stopped  chan bool
 	isClose  bool
 }
 
 func NewNatsServer(app module.App, s *RPCServer) (*NatsServer, error) {
 	server := new(NatsServer)
 	server.server = s
-	server.done = make(chan error)
+	server.done = make(chan bool)
+	server.stopped = make(chan bool)
 	server.isClose = false
 	server.app = app
 	server.addr = nats.NewInbox()
-	go server.onRequestHandle()
+	//go server.onRequestHandle()
+	go func() {
+		server.onRequestHandle()
+		safeClose(server.stopped)
+	}()
 	return server, nil
 }
 
@@ -39,8 +45,13 @@ func (s *NatsServer) Addr() string {
 
 // 註銷消息隊列
 func (s *NatsServer) Shutdown() (err error) {
-	s.done <- nil
+	//s.done <- nil
+	safeClose(s.done)
 	s.isClose = true
+	select {
+	case <-s.stopped:
+		// 等待nats註銷完成
+	}
 	return
 }
 
@@ -60,7 +71,10 @@ func (s *NatsServer) onRequestHandle() error {
 	}
 
 	go func() {
-		<-s.done
+		select {
+		case <-s.done:
+			// 服務關閉
+		}
 		subs.Unsubscribe()
 	}()
 
@@ -69,7 +83,7 @@ func (s *NatsServer) onRequestHandle() error {
 		if err != nil && err == nats.ErrTimeout {
 			continue
 		} else if err != nil {
-			log.Error("NatsServer error:", err)
+			log.Warn("NatsServer error:", err)
 			continue
 		}
 
@@ -106,4 +120,14 @@ func (s *NatsServer) Unmarshal(data []byte) (*rpcPB.RPCInfo, error) {
 func (s *NatsServer) MarshalResult(resultInfo rpcPB.ResultInfo) ([]byte, error) {
 	b, err := proto.Marshal(&resultInfo)
 	return b, err
+}
+
+func safeClose(ch chan bool) {
+	defer func() {
+		if recover() != nil {
+			// close(ch) panic occur
+		}
+	}()
+
+	close(ch) // panic if ch is closed
 }

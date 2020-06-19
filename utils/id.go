@@ -4,8 +4,8 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
+	jsonIter "github.com/json-iterator/go"
 	"io"
 	"strconv"
 	"sync"
@@ -22,7 +22,7 @@ func (id ID) String() string {
 
 // MarshalJSON encodes the ID as a hex string.
 func (id ID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(id.String())
+	return jsonIter.Marshal(id.String())
 }
 
 // UnmarshalJSON decodes the given data as either a hexadecimal string or JSON
@@ -103,7 +103,7 @@ func init() {
 
 func parseJSONString(data []byte) (ID, error) {
 	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
+	if err := jsonIter.Unmarshal(data, &s); err != nil {
 		return 0, err
 	}
 	i, err := ParseID(s)
@@ -115,7 +115,7 @@ func parseJSONString(data []byte) (ID, error) {
 
 func parseJSONInt(data []byte) (ID, error) {
 	var i uint64
-	if err := json.Unmarshal(data, &i); err != nil {
+	if err := jsonIter.Unmarshal(data, &i); err != nil {
 		return 0, err
 	}
 	return ID(i), nil

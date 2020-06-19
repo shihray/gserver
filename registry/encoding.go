@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"encoding/hex"
-	"encoding/json"
+	jsonIter "github.com/json-iterator/go"
 	"io/ioutil"
 )
 
@@ -44,7 +44,7 @@ func decode(d string) []byte {
 func encodeMetadata(md map[string]string) []string {
 	var tags []string
 	for k, v := range md {
-		if b, err := json.Marshal(map[string]string{
+		if b, err := jsonIter.Marshal(map[string]string{
 			k: v,
 		}); err == nil {
 			// new encoding
@@ -83,7 +83,7 @@ func decodeMetadata(tags []string) map[string]string {
 		}
 
 		// Now unmarshal
-		if err := json.Unmarshal(buf, &kv); err == nil {
+		if err := jsonIter.Unmarshal(buf, &kv); err == nil {
 			for k, v := range kv {
 				md[k] = v
 			}
@@ -121,7 +121,7 @@ func decodeVersion(tags []string) (string, bool) {
 func encodeEndpoints(en []*Endpoint) []string {
 	var tags []string
 	for _, e := range en {
-		if b, err := json.Marshal(e); err == nil {
+		if b, err := jsonIter.Marshal(e); err == nil {
 			tags = append(tags, "e-"+encode(b))
 		}
 	}
@@ -157,7 +157,7 @@ func decodeEndpoints(tags []string) []*Endpoint {
 			buf = decode(tag[2:])
 		}
 
-		if err := json.Unmarshal(buf, &e); err == nil {
+		if err := jsonIter.Unmarshal(buf, &e); err == nil {
 			en = append(en, e)
 		}
 

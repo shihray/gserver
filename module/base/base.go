@@ -2,8 +2,8 @@ package basemodule
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	jsonIter "github.com/json-iterator/go"
 	defaultRPC "github.com/shihray/gserver/rpc/base"
 	"math/rand"
 	"os"
@@ -287,7 +287,7 @@ func (m *BaseModule) GetStatistical() (statistical string, err error) {
 	for _, s := range m.statistical {
 		s.EndTime = now
 	}
-	b, err := json.Marshal(m.statistical)
+	b, err := jsonIter.Marshal(m.statistical)
 	if err == nil {
 		statistical = string(b)
 	}

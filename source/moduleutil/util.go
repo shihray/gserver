@@ -1,8 +1,8 @@
 package moduleutil
 
 import (
-	"encoding/json"
 	"fmt"
+	jsonIter "github.com/json-iterator/go"
 	"github.com/nats-io/nats.go"
 	"github.com/pkg/errors"
 	module "github.com/shihray/gserver/module"
@@ -352,7 +352,7 @@ func (mu *ModuleUtil) ProtocolMarshal(Result interface{}, Error interface{}) (mo
 		Error:  Error,
 		Result: Result,
 	}
-	b, err := json.Marshal(r)
+	b, err := jsonIter.Marshal(r)
 	if err == nil {
 		return mu.NewProtocolMarshal(b), ""
 	} else {
