@@ -23,6 +23,7 @@ type Options struct {
 	RoutineCount     int
 	// Register loop interval
 	RegisterInterval time.Duration
+	ExitSignal       chan bool
 }
 
 type ClientRPChandler func(app App, server registry.Service, rpcinfo rpcPB.RPCInfo, result interface{}, err string, exec_time int64)
@@ -89,5 +90,11 @@ func SetServerRPCHandler(t ServerRPCHandler) Option {
 func RoutineCount(num int) Option {
 	return func(o *Options) {
 		o.RoutineCount = num
+	}
+}
+
+func ExitSignal(ok chan bool) Option {
+	return func(o *Options) {
+		o.ExitSignal = ok
 	}
 }

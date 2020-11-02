@@ -77,6 +77,8 @@ func main() {
 		registryOption = Module.Registry(rsRedis)
 	}
 
+	//cl := make(chan bool, 1)
+
 	routineCount := 100
 	app := CreateApp(
 		Module.LogMode(int(log.Stdout)),        // log mode 0:Stdout 1:file
@@ -86,6 +88,7 @@ func main() {
 		registryOption,                         // register
 		Module.RegisterInterval(1*time.Second), // RegisterInterval
 		Module.RoutineCount(routineCount),      // routine size
+		//Module.ExitSignal(cl),                  // 關閉信號
 	)
 	// init modules
 	erro := app.Run(

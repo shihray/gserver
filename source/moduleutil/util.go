@@ -133,22 +133,34 @@ func (mu *ModuleUtil) Run(mods ...module.Module) error {
 	if mu.startupCallback != nil {
 		mu.startupCallback(mu)
 	}
-	// close
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGTERM)
-	sig := <-c
 
 	wait := make(chan struct{})
-	go func() {
-		manager.Destroy()
-		mu.OnDestroy()
-		wait <- struct{}{}
-	}()
+	if mu.opts.ExitSignal == nil {
+		// close
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGTERM)
+		<-c
+
+		go func() {
+			manager.Destroy()
+			mu.OnDestroy()
+			wait <- struct{}{}
+		}()
+	} else {
+		isStop := <-mu.opts.ExitSignal
+
+		if isStop {
+			go func() {
+				manager.Destroy()
+				mu.OnDestroy()
+				wait <- struct{}{}
+			}()
+		}
+	}
 	select {
 	case <-wait:
-		log.Info("gserver closing down (signal:", sig, ")")
+		log.Info("gserver closing down")
 	}
-
 	return nil
 }
 
