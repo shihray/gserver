@@ -56,6 +56,7 @@ type App interface {
 	Registry() registry.Registry
 	GetServerByID(id string) (ServerSession, error)
 	GetServersByType(name string) ([]ServerSession, error)
+	GetRandomServerByType(name string) (ServerSession, error)
 
 	GetSettings() conf.Config //獲取配置信息
 	RpcInvoke(module RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string)

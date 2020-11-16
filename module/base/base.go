@@ -180,6 +180,10 @@ func (m *BaseModule) GetServersByType(typeName string) (s []module.ServerSession
 	return m.App.GetServersByType(typeName)
 }
 
+func (m *BaseModule) GetRandomServerByType(typeName string) (s module.ServerSession, err error) {
+	return m.App.GetRandomServerByType(typeName)
+}
+
 func (m *BaseModule) RpcInvoke(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) (result interface{}, err string) {
 	return m.App.RpcInvoke(m.GetSubclass(), moduleType, rpcInvokeResult)
 }

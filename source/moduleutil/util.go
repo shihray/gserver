@@ -266,6 +266,20 @@ func (mu *ModuleUtil) GetServersByType(typeName string) ([]module.ServerSession,
 	return sessions, nil
 }
 
+func (mu *ModuleUtil) GetRandomServerByType(typeName string) (module.ServerSession, error) {
+	var resp module.ServerSession
+
+	servers, getErr := mu.GetServersByType(typeName)
+	if getErr != nil {
+		return resp, getErr
+	}
+
+	seed := random.Intn(len(servers))
+	resp = servers[seed]
+
+	return resp, nil
+}
+
 func (mu *ModuleUtil) getRouteServer(filter string) (s module.ServerSession, err error) {
 	sl := strings.Split(filter, "@")
 	if len(sl) == 2 {
