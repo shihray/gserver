@@ -24,8 +24,6 @@ type Rpc struct {
 }
 
 type ModuleSettings struct {
-	ID       string
-	Host     string
 	Settings map[string]interface{}
 }
 

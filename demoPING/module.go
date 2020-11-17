@@ -41,8 +41,10 @@ func (p *Ping) OnInit(app module.App, settings *Conf.ModuleSettings) {
 	})
 
 	p.GetServer().RegisterGO("HELLO", func(m map[string]interface{}) (string, string) {
+		msg := p.GetModuleSettings().Settings["echo"].(string)
+
 		if name, isExist := m["name"]; isExist {
-			return "Hello" + name.(string), ""
+			return "Hello" + name.(string) + " " + msg, ""
 		}
 		return "Hello you", ""
 	})

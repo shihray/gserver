@@ -2,12 +2,15 @@
   "Module": {
     "PING": [
       {
-        "ID": "PING"
+        "Settings": {
+          "echo" : "Answer From config.json"
+        }
       }
     ],
     "PONG": [
       {
-        "ID": "PONG"
+        "Settings": {
+        }
       }
     ]
   },

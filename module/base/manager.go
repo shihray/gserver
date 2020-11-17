@@ -37,9 +37,9 @@ func (mer *ModuleManager) Init(app module.App) {
 	mer.app = app
 	mer.CheckModuleSettings() // 配置文件規則檢查
 	for i := 0; i < len(mer.mods); i++ {
+		mer.runMods = append(mer.runMods, mer.mods[i]) // 這裏加入能夠運行的組件
 		for Type, modSettings := range app.GetSettings().Module {
 			if mer.mods[i].mi.GetType() == Type {
-				mer.runMods = append(mer.runMods, mer.mods[i]) // 這裏加入能夠運行的組件
 				for _, setting := range modSettings {
 					mer.mods[i].settings = setting
 				}
@@ -66,16 +66,15 @@ module配置文件規則檢查
 1. ID全局必須唯一
 */
 func (mer *ModuleManager) CheckModuleSettings() {
+
+	existType := map[string]bool{}
 	// 用來保存全局ID-ModuleType
-	gID := map[string]string{}
-	for Type, modSettings := range conf.Conf.Module {
-		for _, setting := range modSettings {
-			if Stype, ok := gID[setting.ID]; ok {
-				// 如果ID已經存在,說明有兩個相同ID的模塊,這種情況不能被允許,這裏就直接拋異常 強制崩潰以免以後調試找不到問題
-				panic(fmt.Sprintf("ID (%s) been used in modules of type [%s] and cannot be reused", setting.ID, Stype))
-			} else {
-				gID[setting.ID] = Type
-			}
+	for moduleType, _ := range conf.Conf.Module {
+		if _, isExist := existType[moduleType]; !isExist {
+			existType[moduleType] = true
+		} else {
+			// 如果ID已經存在,說明有兩個相同ID的模塊,這種情況不能被允許,這裏就直接拋異常 強制崩潰以免以後調試找不到問題
+			panic(fmt.Sprintf("Type (%s) been used in modules and cannot be reused", moduleType))
 		}
 	}
 }
