@@ -88,11 +88,11 @@ func (c *NatsClient) Call(callInfo mqrpc.CallInfo, callback chan rpcPB.ResultInf
 
 // 消息請求 不需要回覆
 func (c *NatsClient) CallNR(callInfo mqrpc.CallInfo) error {
-	_, err := c.Marshal(&callInfo.RpcInfo)
+	body, err := c.Marshal(&callInfo.RpcInfo)
 	if err != nil {
 		return err
 	}
-	return nil
+	return c.app.Transport().Publish(c.session.GetService().Address, body)
 }
 
 // 接收應答信息

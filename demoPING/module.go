@@ -62,11 +62,17 @@ func (p *Ping) Run(closeSig chan bool) {
 			select {
 			case <-tickUpdate.C:
 				{
-					s, err := p.GetRandomServiceID("PONG")
+					s, err := p.GetRandomServerByType("PONG")
 					if err != nil {
 						log.ErrorF("[%v]GetRandomServiceID Error :%v", s, err.Error())
 					}
-					go p.RpcInvoke(s, st)
+					log.Error(s.CallNR(st))
+
+					sID, getErr := p.GetRandomServiceID("PONG")
+					if getErr != nil {
+						log.ErrorF("[%v]GetRandomServiceID Error :%v", s, getErr.Error())
+					}
+					go p.RpcInvoke(sID, st)
 				}
 			}
 		}
