@@ -1,32 +1,24 @@
 package argsutil
 
 import (
-	"fmt"
-	jsonIter "github.com/json-iterator/go"
-	"reflect"
-	"strings"
-
-	"github.com/golang/protobuf/proto"
 	module "github.com/shihray/gserver/module"
-	mqRPC "github.com/shihray/gserver/rpc"
 	"github.com/shihray/gserver/utils"
-	log "github.com/z9905080/gloger"
 )
 
 var (
-	NULL    = "null"    //nil null
-	BOOL    = "bool"    //bool
-	INT     = "int"     //int32
-	SHORT   = "int32"   //int
-	LONG    = "long"    //long64
-	FLOAT   = "float"   //float32
-	DOUBLE  = "double"  //float64
-	BYTES   = "bytes"   //[]byte
-	STRING  = "string"  //string
-	MAP     = "map"     //map[string]interface{}
-	MAPSTR  = "mapstr"  //map[string]string{}
-	Marshal = "marshal" //mqRPC.Marshaler
-	Proto   = "proto"   //proto.Message
+	NULL      = "null"      //nil null
+	BOOL      = "bool"      //bool
+	INT       = "int"       //int32
+	SHORT     = "int32"     //int
+	LONG      = "long"      //long64
+	FLOAT     = "float"     //float32
+	DOUBLE    = "double"    //float64
+	BYTES     = "bytes"     //[]byte
+	STRING    = "string"    //string
+	MAP       = "map"       //map[string]interface{}
+	MAPSTR    = "mapstr"    //map[string]string{}
+	Interface = "interface" // interface
+	//Marshal   = "marshal"   //mqRPC.Marshal
 )
 
 func ArgsTypeAnd2Bytes(app module.App, arg interface{}) (string, []byte, error) {
@@ -68,67 +60,64 @@ func ArgsTypeAnd2Bytes(app module.App, arg interface{}) (string, []byte, error) 
 			return MAPSTR, nil, err
 		}
 		return MAPSTR, bytes, nil
+	//case struct{}:
+	//	for _, v := range app.GetRPCSerialize() {
+	//		ptype, vk, err := v.Serialize(arg)
+	//		if err == nil {
+	//			//解析成功了
+	//			return ptype, vk, err
+	//		}
+	//	}
+	//	rv := reflect.ValueOf(arg)
+	//	//不是指针
+	//	if rv.Kind() != reflect.Ptr {
+	//		return "", nil, fmt.Errorf("Args2Bytes [%v] not registered to app.addrpcserialize(...) structure type or not *mqRPC.marshaler pointer type", reflect.TypeOf(arg))
+	//	} else {
+	//		if rv.IsNil() {
+	//			//如果是nil则直接返回
+	//			return NULL, nil, nil
+	//		}
+	//
+	//		if b, err := jsonIter.ConfigCompatibleWithStandardLibrary.Marshal(arg); err != nil {
+	//			return "", nil, fmt.Errorf("args [%s] marshal error %v", reflect.TypeOf(arg), err)
+	//		} else {
+	//			return Marshal, b, nil
+	//		}
+	//	}
 	default:
-		for _, v := range app.GetRPCSerialize() {
-			ptype, vk, err := v.Serialize(arg)
-			if err == nil {
-				//解析成功了
-				return ptype, vk, err
-			}
+		bytes, err := utils.InterfaceToBytes(v2)
+		if err != nil {
+			return MAP, nil, err
 		}
-
-		rv := reflect.ValueOf(arg)
-		//不是指针
-		if rv.Kind() != reflect.Ptr {
-			return "", nil, fmt.Errorf("Args2Bytes [%v] not registered to app.addrpcserialize(...) structure type or not *mqRPC.marshaler pointer type", reflect.TypeOf(arg))
-		} else {
-			if rv.IsNil() {
-				//如果是nil则直接返回
-				return NULL, nil, nil
-			}
-
-			if b, err := jsonIter.ConfigCompatibleWithStandardLibrary.Marshal(arg); err != nil {
-				return "", nil, fmt.Errorf("args [%s] marshal error %v", reflect.TypeOf(arg), err)
-			} else {
-				return Marshal, b, nil
-			}
-
-			if v2, ok := arg.(mqRPC.Marshaler); ok {
-				b, err := v2.Marshal()
-				if err != nil {
-					return "", nil, fmt.Errorf("args [%s] marshal error %v", reflect.TypeOf(arg), err)
-				}
-				if v2.String() != "" {
-					return fmt.Sprintf("%v@%v", Marshal, v2.String()), b, nil
-				} else {
-					return fmt.Sprintf("%v@%v", Marshal, reflect.TypeOf(arg)), b, nil
-				}
-			}
-			if v2, ok := arg.(proto.Message); ok {
-				b, err := proto.Marshal(v2)
-				if err != nil {
-					log.Error("proto.Marshal error")
-					return "", nil, fmt.Errorf("args [%s] proto.Marshal error %v", reflect.TypeOf(arg), err)
-				}
-				if v2.String() != "" {
-					return fmt.Sprintf("%v@%v", Proto, v2.String()), b, nil
-				} else {
-					return fmt.Sprintf("%v@%v", Proto, reflect.TypeOf(arg)), b, nil
-				}
-			}
-		}
-
-		return "", nil, fmt.Errorf("Args2Bytes [%s] not registered to app.addrpcserialize(...) structure type", reflect.TypeOf(arg))
+		return Interface, bytes, nil
+		//for _, v := range app.GetRPCSerialize() {
+		//	ptype, vk, err := v.Serialize(arg)
+		//	if err == nil {
+		//		//解析成功了
+		//		return ptype, vk, err
+		//	}
+		//}
+		//
+		//rv := reflect.ValueOf(arg)
+		////不是指针
+		//if rv.Kind() != reflect.Ptr {
+		//	return "", nil, fmt.Errorf("Args2Bytes [%v] not registered to app.addrpcserialize(...) structure type or not *mqRPC.marshaler pointer type", reflect.TypeOf(arg))
+		//} else {
+		//	if rv.IsNil() {
+		//		//如果是nil则直接返回
+		//		return NULL, nil, nil
+		//	}
+		//
+		//	if b, err := jsonIter.ConfigCompatibleWithStandardLibrary.Marshal(arg); err != nil {
+		//		return "", nil, fmt.Errorf("args [%s] marshal error %v", reflect.TypeOf(arg), err)
+		//	} else {
+		//		return Marshal, b, nil
+		//	}
+		//}
 	}
 }
 
 func Bytes2Args(app module.App, argsType string, args []byte) (interface{}, error) {
-	if strings.HasPrefix(argsType, Marshal) {
-		return args, nil
-	}
-	if strings.HasPrefix(argsType, Proto) {
-		return args, nil
-	}
 	switch argsType {
 	case NULL:
 		return nil, nil
@@ -160,14 +149,16 @@ func Bytes2Args(app module.App, argsType string, args []byte) (interface{}, erro
 			return nil, errs
 		}
 		return mps, nil
+	//case Marshal:
+	//	for _, v := range app.GetRPCSerialize() {
+	//		vk, err := v.Deserialize(argsType, args)
+	//		if err == nil {
+	//			//解析成功了
+	//			return vk, err
+	//		}
+	//	}
+	//	return nil, fmt.Errorf("Bytes2Args [%s] not registered to app.addrpcserialize(...)", argsType)
 	default:
-		for _, v := range app.GetRPCSerialize() {
-			vk, err := v.Deserialize(argsType, args)
-			if err == nil {
-				//解析成功了
-				return vk, err
-			}
-		}
-		return nil, fmt.Errorf("Bytes2Args [%s] not registered to app.addrpcserialize(...)", argsType)
+		return args, nil
 	}
 }

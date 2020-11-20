@@ -51,7 +51,9 @@ func (p *Ping) OnInit(app module.App, settings *Conf.ModuleSettings) {
 }
 
 func (p *Ping) Run(closeSig chan bool) {
-	st := mqrpc.NewResultInvoke("PING", nil)
+	st := mqrpc.NewResultInvoke("PING", map[int]int{
+		1: 1,
+	}, 1, "123")
 
 	go func() {
 		tickUpdate := time.NewTicker(time.Duration(1) * time.Second)
@@ -72,7 +74,13 @@ func (p *Ping) Run(closeSig chan bool) {
 					if getErr != nil {
 						log.ErrorF("[%v]GetRandomServiceID Error :%v", s, getErr.Error())
 					}
-					log.Error(p.RpcInvokeNR(sID, st))
+					//log.Error()
+					resp, getErr2 := p.RpcInvoke(sID, st)
+					var tt struct {
+						A int
+					}
+					Conf.JSONTool.Unmarshal(resp.([]byte), &tt)
+					log.Error(resp, getErr2, tt)
 				}
 			}
 		}

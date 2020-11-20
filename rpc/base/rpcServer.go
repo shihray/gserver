@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	module "github.com/shihray/gserver/module"
 	mqRPC "github.com/shihray/gserver/rpc"
 	rpcPB "github.com/shihray/gserver/rpc/pb"
@@ -218,19 +217,8 @@ func (s *RPCServer) runFunc(callInfo mqRPC.CallInfo) {
 					//接收值變量
 					in[k] = elem.Elem()
 				}
-			} else if pb, ok := elem.Interface().(proto.Message); ok {
-				err := proto.Unmarshal(params[k], pb)
-				if err != nil {
-					iErrorCallback(callInfo.RpcInfo.Cid, err.Error())
-					return
-				}
-				if rv.Kind() == reflect.Ptr {
-					//接收指針變量的參數
-					in[k] = reflect.ValueOf(elem.Interface())
-				} else {
-					//接收值變量
-					in[k] = elem.Elem()
-				}
+			} else if _, ok := elem.Interface().([]byte); ok {
+				in[k] = elem.Elem()
 			} else {
 				// 不是Marshaler 才嘗試用 argsUtil 解析
 				ty, err := argsUtil.Bytes2Args(s.app, v, params[k])

@@ -99,6 +99,11 @@ func MapToBytes(jmap map[string]interface{}) ([]byte, error) {
 	return bytes, err
 }
 
+func InterfaceToBytes(jmap interface{}) ([]byte, error) {
+	bytes, err := gJsonTool.Marshal(jmap)
+	return bytes, err
+}
+
 func BytesToMap(bytes []byte) (map[string]interface{}, error) {
 	v := make(map[string]interface{})
 	err := gJsonTool.Unmarshal(bytes, &v)
