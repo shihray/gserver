@@ -16,7 +16,8 @@ import (
 var (
 	NULL    = "null"    //nil null
 	BOOL    = "bool"    //bool
-	INT     = "int"     //int
+	INT     = "int"     //int32
+	SHORT   = "int32"   //int
 	LONG    = "long"    //long64
 	FLOAT   = "float"   //float32
 	DOUBLE  = "double"  //float64
@@ -43,8 +44,10 @@ func ArgsTypeAnd2Bytes(app module.App, arg interface{}) (string, []byte, error) 
 		return STRING, []byte(v2), nil
 	case bool:
 		return BOOL, utils.BoolToBytes(v2), nil
+	case int:
+		return INT, utils.IntToBytes(v2), nil
 	case int32:
-		return INT, utils.Int32ToBytes(v2), nil
+		return SHORT, utils.Int32ToBytes(v2), nil
 	case int64:
 		return LONG, utils.Int64ToBytes(v2), nil
 	case float32:
@@ -134,6 +137,8 @@ func Bytes2Args(app module.App, argsType string, args []byte) (interface{}, erro
 	case BOOL:
 		return utils.BytesToBool(args), nil
 	case INT:
+		return utils.BytesToInt(args), nil
+	case SHORT:
 		return utils.BytesToInt32(args), nil
 	case LONG:
 		return utils.BytesToInt64(args), nil

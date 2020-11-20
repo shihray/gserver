@@ -326,11 +326,13 @@ func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, rpcI
 		err = e
 		return
 	}
-	if callServerErr := server.CallNR(rpcInvokeResult); callServerErr.Error() == defaultRPC.DeadlineExceeded || callServerErr.Error() == defaultRPC.ClientClose {
-		if errOfDeregister := mu.Registry().Deregister(server.GetService()); errOfDeregister != nil {
-			log.Warn("Deregister Service Error:", errOfDeregister)
-			err = errOfDeregister
-			return
+	if callServerErr := server.CallNR(rpcInvokeResult); callServerErr != nil {
+		if callServerErr.Error() == defaultRPC.DeadlineExceeded || callServerErr.Error() == defaultRPC.ClientClose {
+			if errOfDeregister := mu.Registry().Deregister(server.GetService()); errOfDeregister != nil {
+				log.Warn("Deregister Service Error:", errOfDeregister)
+				err = errOfDeregister
+				return
+			}
 		}
 		mu.serverList.Delete(server.GetID())
 	}

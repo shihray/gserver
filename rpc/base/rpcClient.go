@@ -130,18 +130,19 @@ func (c *RPCClient) Call(ctx context.Context, rpcInvokeResult *mqRPC.ResultInvok
 /**
 消息请求 不需要回复
 */
-func (c *RPCClient) CallNR(rpcInvokeResult *mqRPC.ResultInvokeST) (err error) {
+func (c *RPCClient) CallNR(rpcInvokeResult *mqRPC.ResultInvokeST) error {
 	funcName, params := rpcInvokeResult.Get()
 	argsType := make([]string, len(params))
 	args := make([][]byte, len(params))
 	for k, param := range params {
-		argsType[k], args[k], err = argsUtil.ArgsTypeAnd2Bytes(c.app, param)
-		if err != nil {
-			return fmt.Errorf("args[%d] error %s", k, err.Error())
+		var getErr error = nil
+		argsType[k], args[k], getErr = argsUtil.ArgsTypeAnd2Bytes(c.app, param)
+		if getErr != nil {
+			return fmt.Errorf("args[%d] error %s", k, getErr.Error())
 		}
 	}
 	start := time.Now()
-	err = c.CallNRArgs(funcName, argsType, args)
+	err := c.CallNRArgs(funcName, argsType, args)
 	msg := fmt.Sprintf("RPC Call ServerID = %v Func = %v Elapsed = %v ERROR = %v", c.natsClient.session.GetID(), funcName, time.Since(start), err)
 	log.Debug(msg)
 

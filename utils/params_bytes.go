@@ -36,6 +36,12 @@ func BytesToBool(buf []byte) bool {
 	return data
 }
 
+func IntToBytes(i int) []byte {
+	var buf = make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, uint64(i))
+	return buf
+}
+
 func Int32ToBytes(i int32) []byte {
 	var buf = make([]byte, 4)
 	binary.BigEndian.PutUint32(buf, uint32(i))
@@ -50,6 +56,10 @@ func Int64ToBytes(i int64) []byte {
 	var buf = make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, uint64(i))
 	return buf
+}
+
+func BytesToInt(buf []byte) int {
+	return int(binary.BigEndian.Uint64(buf))
 }
 
 func BytesToInt64(buf []byte) int64 {

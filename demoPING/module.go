@@ -66,13 +66,13 @@ func (p *Ping) Run(closeSig chan bool) {
 					if err != nil {
 						log.ErrorF("[%v]GetRandomServiceID Error :%v", s, err.Error())
 					}
-					log.Error(s.CallNR(st))
+					//log.Error(s.CallNR(st))
 
 					sID, getErr := p.GetRandomServiceID("PONG")
 					if getErr != nil {
 						log.ErrorF("[%v]GetRandomServiceID Error :%v", s, getErr.Error())
 					}
-					go p.RpcInvoke(sID, st)
+					log.Error(p.RpcInvokeNR(sID, st))
 				}
 			}
 		}
