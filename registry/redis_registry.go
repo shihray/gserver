@@ -3,7 +3,7 @@ package registry
 import (
 	"github.com/gomodule/redigo/redis"
 	hash "github.com/mitchellh/hashstructure"
-	MyRedisUtil "github.com/shihray/gserver/source/redisutil"
+	MyRedisUtil "github.com/shihray/gserver/source/redis_util"
 	log "github.com/z9905080/gloger"
 	"strings"
 	"sync"
@@ -263,9 +263,9 @@ func (c *redisRegistry) Clean(typeName string) error {
 	}
 	// 比對list & Infos 資料，並將找不到的移除
 	for _, key := range keys {
-		// gserver:module:info:moduleType@hashID
+		// gserver:module:info:module_type@hashID
 		splitKey := strings.Split(key, ":")
-		// moduleType@hashID
+		// module_type@hashID
 		name := splitKey[len(splitKey)-1]
 		if _, ok := isExistMap[name]; !ok {
 			// 移除list中未對應 address資料

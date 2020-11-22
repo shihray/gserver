@@ -1,4 +1,4 @@
-package redisutil
+package redis_util
 
 import (
 	"errors"

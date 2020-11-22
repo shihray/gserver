@@ -1,4 +1,4 @@
-package moduleType
+package module_type
 
 type ModuleTypeName string
 

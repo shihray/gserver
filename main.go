@@ -2,11 +2,11 @@ package main
 
 import (
 	"github.com/nats-io/nats.go"
-	ping "github.com/shihray/gserver/demoPING"
-	pong "github.com/shihray/gserver/demoPONG"
+	ping "github.com/shihray/gserver/demo/ping"
+	pong "github.com/shihray/gserver/demo/pong"
 	Module "github.com/shihray/gserver/module"
 	ModuleRegistry "github.com/shihray/gserver/registry"
-	moduleUtil "github.com/shihray/gserver/source/moduleutil"
+	moduleUtil "github.com/shihray/gserver/source/module_util"
 	CommonConf "github.com/shihray/gserver/utils/conf"
 	log "github.com/z9905080/gloger"
 	"net/http"
@@ -31,12 +31,16 @@ func ListenServe() {
 	}()
 }
 
+func init() {
+	log.SetLogMode(log.Stdout)
+}
+
 func main() {
 	ListenServe()
 	// nats setting
 	// connect to multi servers
-	//natsUrl := "nats://127.0.0.1:14222,nats://127.0.0.1:16222,nats://127.0.0.1:18222"
-	natsUrl := CommonConf.GetEnv("NatsURL", nats.DefaultURL)
+	natsUrl := "nats://127.0.0.1:14222,nats://127.0.0.1:16222,nats://127.0.0.1:18222"
+	//natsUrl := CommonConf.GetEnv("NatsURL", nats.DefaultURL)
 	registersUrl := CommonConf.GetEnv("Registers_Url", "")
 	var opts = []nats.Option{
 		nats.DontRandomize(), // turn off randomizing the server pool.
@@ -72,7 +76,7 @@ func main() {
 		rsRedis := ModuleRegistry.NewRedisRegistry(func(op *ModuleRegistry.Options) {
 			op.RedisHost = "127.0.0.1:6379"
 			op.RedisPassword = ""
-			op.GroupID = 2
+			op.GroupID = 1
 		})
 		registryOption = Module.Registry(rsRedis)
 	}

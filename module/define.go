@@ -43,6 +43,7 @@ type RPCModule interface {
 	GetModuleSettings() (settings *conf.ModuleSettings)
 	GetStatistical() (statistical string, err error)
 	GetExecuting() int64
+	CheckHeartbeat(typeName string)
 }
 
 type App interface {
@@ -57,6 +58,7 @@ type App interface {
 	GetServerByID(id string) (ServerSession, error)
 	GetServersByType(name string) ([]ServerSession, error)
 	GetRandomServerByType(name string) (ServerSession, error)
+	GetServiceList() ([]ServerSession, error)
 
 	GetSettings() conf.Config //獲取配置信息
 	RpcInvoke(module RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string)

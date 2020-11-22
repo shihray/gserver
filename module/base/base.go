@@ -106,8 +106,9 @@ func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings 
 	if opts.RegisterInterval == 0 {
 		opt = append(opt, server.RegisterInterval(app.Options().RegisterInterval))
 	}
-	//
-	m.CheckHeartbeat(subclass.GetType())
+
+	//m.CheckHeartbeat(subclass.GetType())
+	m.watcher()
 
 	rpcServer := server.NewServer(opt...)
 	_ = rpcServer.OnInit(subclass, app, settings)
@@ -299,11 +300,32 @@ func (m *BaseModule) GetStatistical() (statistical string, err error) {
 	return
 }
 
+func (m *BaseModule) watcher() {
+	serviceList, err := m.App.GetServiceList()
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	for _, session := range serviceList {
+		st := mqrpc.NewResultInvoke("HB", nil)
+		go func(s module.ServerSession) {
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			defer cancel()
+			if _, callServerErr := s.Call(ctx, st); callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
+				if errOfDeregister := m.App.Registry().Deregister(s.GetService()); errOfDeregister != nil {
+					log.Debug("Heartbeat Error ", errOfDeregister)
+				}
+			}
+		}(session)
+	}
+}
+
 // 檢查在線列表心跳
 func (m *BaseModule) CheckHeartbeat(typeName string) {
-	services, err := m.GetServersByType(typeName)
+	services, err := m.App.GetServersByType(typeName)
 	if err != nil {
-		log.Debug("GetServersByType Error", err.Error())
+		log.Error("GetServersByType Error", err.Error())
+		return
 	}
 	for _, session := range services {
 		st := mqrpc.NewResultInvoke("HB", nil)

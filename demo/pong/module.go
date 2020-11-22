@@ -4,7 +4,7 @@ import (
 	module "github.com/shihray/gserver/module"
 	basemodule "github.com/shihray/gserver/module/base"
 	Conf "github.com/shihray/gserver/utils/conf"
-	"github.com/shihray/gserver/utils/enum/moduleType"
+	"github.com/shihray/gserver/utils/enum/module_type"
 	"log"
 	"strconv"
 )
@@ -21,7 +21,7 @@ type Pong struct {
 
 // version
 func (p *Pong) GetType() string {
-	return moduleType.Pong.String()
+	return module_type.Pong.String()
 }
 
 // version

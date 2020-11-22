@@ -1,4 +1,4 @@
-package moduleutil
+package module_util
 
 import (
 	"fmt"
@@ -216,6 +216,31 @@ func (mu *ModuleUtil) RemoveSutDownService(s *ModuleRegistry.Service) {
 
 func (mu *ModuleUtil) OnDestroy() error {
 	return nil
+}
+
+func (mu *ModuleUtil) GetServiceList() ([]module.ServerSession, error) {
+	sessions := make([]module.ServerSession, 0)
+	serviceList, err := mu.opts.Registry.ListServices()
+	if err != nil {
+		return nil, err
+	}
+	for _, service := range serviceList {
+		session, ok := mu.serverList.Load(service.ID)
+		if !ok {
+			s, err := baseModule.NewServerSession(mu, service.ID, service)
+			if err != nil {
+				log.Warn("NewServerSession", err)
+			} else {
+				mu.serverList.Store(service.ID, s)
+				sessions = append(sessions, s)
+			}
+		} else {
+			session.(module.ServerSession).SetService(service)
+			sessions = append(sessions, session.(module.ServerSession))
+		}
+	}
+
+	return sessions, nil
 }
 
 func (mu *ModuleUtil) GetServerByID(id string) (module.ServerSession, error) {

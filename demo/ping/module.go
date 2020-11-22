@@ -8,7 +8,7 @@ import (
 	log "github.com/z9905080/gloger"
 	"time"
 
-	"github.com/shihray/gserver/utils/enum/moduleType"
+	"github.com/shihray/gserver/utils/enum/module_type"
 )
 
 var Module = func() module.Module {
@@ -23,7 +23,7 @@ type Ping struct {
 
 // version
 func (p *Ping) GetType() string {
-	return moduleType.Ping.String()
+	return module_type.Ping.String()
 }
 
 // version
