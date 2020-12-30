@@ -298,7 +298,9 @@ func (mu *ModuleUtil) GetRandomServerByType(typeName string) (module.ServerSessi
 	if getErr != nil {
 		return resp, getErr
 	}
-
+	if len(servers) == 0 {
+		return nil, errors.New("service not found")
+	}
 	seed := random.Intn(len(servers))
 	resp = servers[seed]
 
