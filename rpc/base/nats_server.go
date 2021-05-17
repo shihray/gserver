@@ -79,7 +79,7 @@ func (s *NatsServer) onRequestHandle() error {
 	}()
 
 	for !s.isClose {
-		m, err := subs.NextMsg(time.Minute)
+		m, err := subs.NextMsg(10 * time.Second)
 		if err != nil && err == nats.ErrTimeout {
 			continue
 		} else if err != nil {

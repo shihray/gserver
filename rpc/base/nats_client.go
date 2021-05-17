@@ -20,6 +20,7 @@ type NatsClient struct {
 	callbackQueueName string
 	app               module.App
 	done              chan error
+	subs              *nats.Subscription
 	session           module.ServerSession
 	isClose           bool
 }
@@ -71,7 +72,7 @@ func (c *NatsClient) Call(callInfo mqrpc.CallInfo, callback chan rpcPB.ResultInf
 		return fmt.Errorf("AMQPClient is closed")
 	}
 	callInfo.RpcInfo.ReplyTo = c.callbackQueueName
-	var correlationID = callInfo.RpcInfo.Cid
+	correlationID := callInfo.RpcInfo.Cid
 
 	clientCallInfo := &ClinetCallInfo{
 		correlationID: correlationID,
@@ -79,6 +80,13 @@ func (c *NatsClient) Call(callInfo mqrpc.CallInfo, callback chan rpcPB.ResultInf
 		timeout:       callInfo.RpcInfo.Expired,
 	}
 	c.callinfos.Store(correlationID, *clientCallInfo)
+
+	resp := ""
+	for _, arg := range callInfo.RpcInfo.Args {
+		resp += " " + string(arg)
+	}
+	log.DebugF("儲存發送消息 cid:%v, Args:%v", correlationID, resp)
+
 	body, err := c.Marshal(&callInfo.RpcInfo)
 	if err != nil {
 		return err
@@ -96,40 +104,66 @@ func (c *NatsClient) CallNR(callInfo mqrpc.CallInfo) error {
 }
 
 // 接收應答信息
-func (c *NatsClient) onRequestHandle() error {
+func (c *NatsClient) onRequestHandle() (err error) {
 	defer utils.RecoverFunc()
-	subs, err := c.app.Transport().SubscribeSync(c.callbackQueueName)
+
+	log.DebugF("callbackQueueName : %v", c.callbackQueueName)
+
+	c.subs, err = c.app.Transport().SubscribeSync(c.callbackQueueName)
 	if err != nil {
 		return err
 	}
 
 	go func() {
 		<-c.done
-		subs.Unsubscribe()
+		c.subs.Unsubscribe()
 	}()
 
 	for !c.isClose {
-		m, err := subs.NextMsg(time.Minute)
-		if err != nil && err == nats.ErrTimeout {
+		m, msgErr := c.subs.NextMsg(10 * time.Second)
+		if msgErr != nil && msgErr == nats.ErrTimeout {
+
+			if !c.subs.IsValid() {
+				// 訂閱已關閉，需要重新訂閱
+				c.subs, msgErr = c.app.Transport().SubscribeSync(c.callbackQueueName)
+				if msgErr != nil {
+					log.ErrorF("NatsClient SubscribeSync[1] error with '%v'", msgErr)
+					continue
+				}
+			}
+
 			continue
-		} else if err != nil {
-			log.Error("NatsClient error with ", err.Error())
+		} else if msgErr != nil {
+			log.Error("NatsClient error with ", msgErr.Error())
+			if !c.subs.IsValid() {
+				// 訂閱已關閉，需要重新訂閱
+				c.subs, err = c.app.Transport().SubscribeSync(c.callbackQueueName)
+				if err != nil {
+					log.ErrorF("NatsClient SubscribeSync[2] error with '%v'", err)
+					continue
+				}
+			}
 			continue
 		}
 
-		resultInfo, err := c.UnmarshalResult(m.Data)
-		if err != nil {
-			log.Error("資料解析錯誤", err.Error())
+		resultInfo, msgErr := c.UnmarshalResult(m.Data)
+		if msgErr != nil {
+			log.Error("Unmarshal failed", msgErr.Error())
 		} else {
 			correlationID := resultInfo.Cid
 			clientCallInfo, _ := c.callinfos.Load(correlationID)
+
+			log.Debug("onRequestHandle接收：", correlationID, "result: ", string(resultInfo.Result), " Error: ", resultInfo.Error)
+
 			//刪除
 			c.callinfos.Delete(correlationID)
 			if clientCallInfo != nil {
-				clientCallInfo.(ClinetCallInfo).call <- *resultInfo
-				c.CloseFch(clientCallInfo.(ClinetCallInfo).call)
+				if clientCallInfo.(ClinetCallInfo).call != nil {
+					clientCallInfo.(ClinetCallInfo).call <- *resultInfo
+					c.CloseFch(clientCallInfo.(ClinetCallInfo).call)
+				}
 			} else {
-				log.Warn("可能客戶端已超時了，但服務端處理完還給回調了:", correlationID)
+				log.Warn("rpc callback no found:", correlationID)
 			}
 		}
 	}

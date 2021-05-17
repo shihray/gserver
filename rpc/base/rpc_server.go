@@ -299,6 +299,9 @@ func (s *RPCServer) runFunc(callInfo mqRPC.CallInfo) {
 		callInfo.Result = *resultInfo
 		callInfo.ExecTime = time.Since(start).Nanoseconds()
 		s.doCallback(callInfo)
+
+		log.DebugF("已處理完接收到的Func Cid:%v, Result:%v", callInfo.RpcInfo.Cid, string(callInfo.Result.Result))
+
 		msg := fmt.Sprintf("RPC Exec ModuleType = %v Func = %v Elapsed = %v", s.module.GetType(), callInfo.RpcInfo.Fn, time.Since(start))
 		log.Debug(msg)
 		if s.listener != nil {
