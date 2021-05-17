@@ -1,6 +1,7 @@
 package module_util
 
 import (
+	"context"
 	"fmt"
 	jsonIter "github.com/json-iterator/go"
 	"github.com/nats-io/nats.go"
@@ -329,13 +330,18 @@ func (mu *ModuleUtil) getRouteServer(filter string) (s module.ServerSession, err
 	return server, nil
 }
 
-func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInvokeResult *mqRPC.ResultInvokeST) (result interface{}, err string) {
+func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInvokeResult *mqRPC.ResultInvokeST, ctxList ...context.Context) (result interface{}, err string) {
 	server, e := mu.getRouteServer(moduleID)
 	if e != nil {
 		err = e.Error()
 		return
 	}
-	rlt, callServerErr := server.Call(nil, rpcInvokeResult)
+	var ctx context.Context = nil
+	if len(ctxList) > 0 {
+		ctx = ctxList[0]
+	}
+
+	rlt, callServerErr := server.Call(ctx, rpcInvokeResult)
 	if callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
 		if errOfDeregister := mu.Registry().Deregister(server.GetService()); errOfDeregister != nil {
 			log.Warn("Deregister Service Error:", errOfDeregister)

@@ -38,7 +38,7 @@ type Module interface {
 type RPCModule interface {
 	Module
 	GetServerID() string //模塊類型
-	RpcInvoke(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string)
+	RpcInvoke(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST, ctxList ...context.Context) (interface{}, string)
 	RpcInvokeNR(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) error
 	GetModuleSettings() (settings *conf.ModuleSettings)
 	GetStatistical() (statistical string, err error)
@@ -61,7 +61,7 @@ type App interface {
 	GetServiceList() ([]ServerSession, error)
 
 	GetSettings() conf.Config //獲取配置信息
-	RpcInvoke(module RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) (interface{}, string)
+	RpcInvoke(module RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST, ctxList ...context.Context) (interface{}, string)
 	RpcInvokeNR(module RPCModule, moduleID string, rpcInvokeResult *mqrpc.ResultInvokeST) error
 
 	AddRPCSerialize(name string, Interface RPCSerialize) error

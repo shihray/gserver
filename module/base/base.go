@@ -185,8 +185,8 @@ func (m *BaseModule) GetRandomServerByType(typeName string) (s module.ServerSess
 	return m.App.GetRandomServerByType(typeName)
 }
 
-func (m *BaseModule) RpcInvoke(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) (result interface{}, err string) {
-	return m.App.RpcInvoke(m.GetSubclass(), moduleType, rpcInvokeResult)
+func (m *BaseModule) RpcInvoke(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST, ctx ...context.Context) (result interface{}, err string) {
+	return m.App.RpcInvoke(m.GetSubclass(), moduleType, rpcInvokeResult, ctx...)
 }
 
 func (m *BaseModule) RpcInvokeNR(moduleType string, rpcInvokeResult *mqrpc.ResultInvokeST) (err error) {
