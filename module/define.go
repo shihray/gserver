@@ -2,7 +2,6 @@ package basemodule
 
 import (
 	"context"
-
 	"github.com/nats-io/nats.go"
 	"github.com/shihray/gserver/registry"
 	mqrpc "github.com/shihray/gserver/rpc"

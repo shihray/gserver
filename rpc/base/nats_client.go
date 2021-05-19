@@ -130,6 +130,7 @@ func (c *NatsClient) onRequestHandle() (err error) {
 					log.ErrorF("NatsClient SubscribeSync[1] error with '%v'", msgErr)
 					continue
 				}
+				log.WarnF("NatsClient SubscribeSync[1] %v", c.callbackQueueName)
 			}
 
 			continue
@@ -142,6 +143,7 @@ func (c *NatsClient) onRequestHandle() (err error) {
 					log.ErrorF("NatsClient SubscribeSync[2] error with '%v'", err)
 					continue
 				}
+				log.WarnF("NatsClient SubscribeSync[2] %v", c.callbackQueueName)
 			}
 			continue
 		}
@@ -151,7 +153,10 @@ func (c *NatsClient) onRequestHandle() (err error) {
 			log.Error("Unmarshal failed", msgErr.Error())
 		} else {
 			correlationID := resultInfo.Cid
-			clientCallInfo, _ := c.callinfos.Load(correlationID)
+			clientCallInfo, ok := c.callinfos.Load(correlationID)
+			if !ok {
+				log.Warn("NatsClient can't found map key:", correlationID)
+			}
 
 			log.Debug("onRequestHandle接收：", correlationID, "result: ", string(resultInfo.Result), " Error: ", resultInfo.Error)
 

@@ -113,18 +113,17 @@ func (s *rpcServer) ServiceRegister() error {
 	if !registered {
 		config.Registry.Clean(service.Name)
 		log.Info("Registering node:", service.ID)
+
+		//config.Registry.ListServices()
+		if err := config.Registry.Register(service); err != nil {
+			return err
+		}
 	}
 
-	//config.Registry.ListServices()
-	if err := config.Registry.Register(service); err != nil {
-		return err
-	}
-
-	// already registered? don't need to register subscribers
 	if registered {
+		// already registered? don't need to register subscribers
 		return nil
 	}
-
 	s.Lock()
 	defer s.Unlock()
 
@@ -157,9 +156,7 @@ func (s *rpcServer) ServiceDeregister() error {
 
 	s.Lock()
 	defer s.Unlock()
-	if !s.registered {
-		return nil
-	}
+
 	s.registered = false
 	return nil
 }

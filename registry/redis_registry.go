@@ -114,6 +114,8 @@ func (c *redisRegistry) Register(s *Service, opts ...RegisterOption) error {
 	c.register[s.ID] = h
 	c.Unlock()
 
+	log.DebugF("[%v]Redis Register Success", s.ID)
+
 	return nil
 }
 
@@ -169,6 +171,8 @@ func (c *redisRegistry) GetService(name string) ([]*Service, error) {
 		}
 		hList[name] = addr
 	}
+
+	log.DebugF("Redis GetService:%v", hList)
 
 	var services []*Service
 	for redisName, address := range hList {

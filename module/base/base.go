@@ -306,15 +306,21 @@ func (m *BaseModule) watcher() {
 		log.Error(err.Error())
 		return
 	}
+
 	for _, session := range serviceList {
 		st := mqrpc.NewResultInvoke("HB", nil)
 		go func(s module.ServerSession) {
 			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 			defer cancel()
 			if _, callServerErr := s.Call(ctx, st); callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
-				if errOfDeregister := m.App.Registry().Deregister(s.GetService()); errOfDeregister != nil {
-					log.Debug("Heartbeat Error ", errOfDeregister)
+
+				if errOfDeregister := m.GetServer().ServiceDeregister(); errOfDeregister != nil {
+					log.Warn("Heartbeat Error ", errOfDeregister)
 				}
+
+				//if errOfDeregister := m.App.Registry().Deregister(s.GetService()); errOfDeregister != nil {
+				//	log.Debug("Heartbeat Error ", errOfDeregister)
+				//}
 			}
 		}(session)
 	}
@@ -333,9 +339,12 @@ func (m *BaseModule) CheckHeartbeat(typeName string) {
 			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 			defer cancel()
 			if _, callServerErr := s.Call(ctx, st); callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
-				if errOfDeregister := m.App.Registry().Deregister(s.GetService()); errOfDeregister != nil {
-					log.Debug("Heartbeat Error ", errOfDeregister)
+				if errOfDeregister := m.GetServer().ServiceDeregister(); errOfDeregister != nil {
+					log.Warn("Heartbeat Error ", errOfDeregister)
 				}
+				//if errOfDeregister := m.App.Registry().Deregister(s.GetService()); errOfDeregister != nil {
+				//	log.Debug("Heartbeat Error ", errOfDeregister)
+				//}
 			}
 		}(session)
 	}
