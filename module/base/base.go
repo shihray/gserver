@@ -313,14 +313,9 @@ func (m *BaseModule) watcher() {
 			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 			defer cancel()
 			if _, callServerErr := s.Call(ctx, st); callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
-
-				if errOfDeregister := m.GetServer().ServiceDeregister(); errOfDeregister != nil {
-					log.Warn("Heartbeat Error ", errOfDeregister)
+				if errOfDeregister := m.App.Registry().Deregister(s.GetService()); errOfDeregister != nil {
+					log.Debug("Heartbeat Error ", errOfDeregister)
 				}
-
-				//if errOfDeregister := m.App.Registry().Deregister(s.GetService()); errOfDeregister != nil {
-				//	log.Debug("Heartbeat Error ", errOfDeregister)
-				//}
 			}
 		}(session)
 	}
