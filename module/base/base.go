@@ -107,9 +107,6 @@ func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings 
 		opt = append(opt, server.RegisterInterval(app.Options().RegisterInterval))
 	}
 
-	//m.CheckHeartbeat(subclass.GetType())
-	m.watcher()
-
 	rpcServer := server.NewServer(opt...)
 	_ = rpcServer.OnInit(subclass, app, settings)
 	hostname, _ := os.Hostname()
@@ -134,6 +131,9 @@ func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings 
 	// implement go routine control channel
 	m.routineLock = make(chan bool, app.Options().RoutineCount)
 	m.GetServer().SetGoroutineControl(m)
+
+	//m.CheckHeartbeat(subclass.GetType())
+	m.watcher()
 }
 
 // Start when create new routine add lock
