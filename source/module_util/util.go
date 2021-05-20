@@ -10,7 +10,6 @@ import (
 	baseModule "github.com/shihray/gserver/module/base"
 	ModuleRegistry "github.com/shihray/gserver/registry"
 	mqRPC "github.com/shihray/gserver/rpc"
-	defaultRPC "github.com/shihray/gserver/rpc/base"
 	CommonConf "github.com/shihray/gserver/utils/conf"
 	log "github.com/z9905080/gloger"
 	random "math/rand"
@@ -245,26 +244,30 @@ func (mu *ModuleUtil) GetServiceList() ([]module.ServerSession, error) {
 }
 
 func (mu *ModuleUtil) GetServerByID(id string) (module.ServerSession, error) {
-	services, err := mu.opts.Registry.GetService(id)
-	if err != nil {
-		log.Warn("GetServerByID", err)
-	}
-	for _, service := range services {
-		if _, ok := mu.serverList.Load(service.ID); !ok {
-			s, err := baseModule.NewServerSession(mu, service.ID, service)
-			if err != nil {
-				log.Warn("NewServerSession", err)
-			} else {
-				s.SetService(service)
-				mu.serverList.Store(service.ID, s)
+	session, isExist := mu.serverList.Load(id)
+	if !isExist {
+		serviceName := id
+		s := strings.Split(id, "@")
+		if len(s) == 2 {
+			serviceName = s[0]
+		} else {
+			return nil, errors.Errorf("serverID is error %v", id)
+		}
+
+		sessionList, getListErr := mu.GetServersByType(serviceName)
+		if getListErr != nil {
+			return nil, getListErr
+		}
+
+		for _, serverSession := range sessionList {
+			if serverSession.GetID() == id {
+				return serverSession, nil
 			}
 		}
-	}
-	if server, ok := mu.serverList.Load(id); !ok {
-		return nil, errors.Errorf("%s Service Not Found", id)
 	} else {
-		return server.(module.ServerSession), nil
+		return session.(module.ServerSession), nil
 	}
+	return nil, errors.Errorf("%s Service Not Found", id)
 }
 
 func (mu *ModuleUtil) GetServersByType(typeName string) ([]module.ServerSession, error) {
@@ -277,9 +280,10 @@ func (mu *ModuleUtil) GetServersByType(typeName string) ([]module.ServerSession,
 	for _, service := range services {
 		session, ok := mu.serverList.Load(service.ID)
 		if !ok {
-			s, err := baseModule.NewServerSession(mu, service.ID, service)
-			if err != nil {
-				log.Warn("NewServerSession", err)
+			s, newSessionErr := baseModule.NewServerSession(mu, service.ID, service)
+			if newSessionErr != nil {
+				log.Warn("NewServerSession", newSessionErr)
+				return nil, newSessionErr
 			} else {
 				mu.serverList.Store(service.ID, s)
 				sessions = append(sessions, s)
@@ -340,17 +344,7 @@ func (mu *ModuleUtil) RpcInvoke(module module.RPCModule, moduleID string, rpcInv
 	if len(ctxList) > 0 {
 		ctx = ctxList[0]
 	}
-
-	rlt, callServerErr := server.Call(ctx, rpcInvokeResult)
-	if callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
-		if errOfDeregister := mu.Registry().Deregister(server.GetService()); errOfDeregister != nil {
-			log.Warn("Deregister Service Error:", errOfDeregister)
-			err = errOfDeregister.Error()
-			return
-		}
-		mu.serverList.Delete(server.GetID())
-	}
-	return rlt, callServerErr
+	return server.Call(ctx, rpcInvokeResult)
 }
 
 func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, rpcInvokeResult *mqRPC.ResultInvokeST) (err error) {
@@ -359,17 +353,7 @@ func (mu *ModuleUtil) RpcInvokeNR(module module.RPCModule, moduleID string, rpcI
 		err = e
 		return
 	}
-	if callServerErr := server.CallNR(rpcInvokeResult); callServerErr != nil {
-		if callServerErr.Error() == defaultRPC.DeadlineExceeded || callServerErr.Error() == defaultRPC.ClientClose {
-			if errOfDeregister := mu.Registry().Deregister(server.GetService()); errOfDeregister != nil {
-				log.Warn("Deregister Service Error:", errOfDeregister)
-				err = errOfDeregister
-				return
-			}
-		}
-		mu.serverList.Delete(server.GetID())
-	}
-	return
+	return server.CallNR(rpcInvokeResult)
 }
 
 func (mu *ModuleUtil) GetModuleInit() func(app module.App, module module.Module) {

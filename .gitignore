@@ -6,6 +6,8 @@ logs/
 # Created by https://www.gitignore.io/api/go
 ### Go ###
 # Binaries for programs and plugins
+gserver
+
 *.exe
 *.exe~
 *.dll
