@@ -301,7 +301,7 @@ func (m *BaseModule) GetStatistical() (statistical string, err error) {
 }
 
 func (m *BaseModule) watcher() {
-	serviceList, err := m.App.GetServiceList()
+	serviceList, err := m.App.GetServersByType(m.GetServer().Options().Name)
 	if err != nil {
 		log.Error(err.Error())
 		return
@@ -315,6 +315,7 @@ func (m *BaseModule) watcher() {
 				if errOfDeregister := m.App.Registry().Deregister(s.GetService()); errOfDeregister != nil {
 					log.Debug("Heartbeat Error ", errOfDeregister)
 				}
+				log.DebugF("NodeID:%v, Heartbeat Error ", s.GetID(), callServerErr)
 			}
 		}(session)
 	}
