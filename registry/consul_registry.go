@@ -355,3 +355,7 @@ func (c *consulRegistry) Options() Options {
 func (c *consulRegistry) Clean(typeName string) error {
 	return nil
 }
+
+func (c *consulRegistry) Check(id string) bool {
+	return false
+}

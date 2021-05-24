@@ -110,6 +110,10 @@ func (s *rpcServer) ServiceRegister() error {
 	registered := s.registered
 	s.Unlock()
 
+	if !config.Registry.Check(service.ID) {
+		registered = false
+	}
+
 	if !registered {
 		config.Registry.Clean(service.Name)
 		log.Info("Registering node:", service.ID)

@@ -285,3 +285,32 @@ func (c *redisRegistry) Clean(typeName string) error {
 
 	return nil
 }
+
+func (c *redisRegistry) Check(id string) bool {
+
+	redisConn, connErr := c.ConnectRedis()
+	if connErr != nil {
+		return false
+	}
+	defer redisConn.Close()
+
+	idSplit := strings.Split(id, "@")
+	if len(idSplit) != 2 {
+		log.Error("資料長度錯誤:", id)
+		return false
+	}
+
+	_, err := redisConn.Do("SISMEMBER", RegisterRedisKey.Title(c.Options().GroupID).Addr(idSplit[0]), id)
+	if err != nil {
+		msg := "redis SISMEMBER Error, func: Check,檢查陣列中元素錯誤 "
+		log.Error(msg + err.Error())
+		return false
+	}
+
+	if _, getModuleErr := redisConn.Do(Get, ModuleInfoRedisKey.Title(c.Options().GroupID).Addr(id)); getModuleErr != nil {
+		log.ErrorF("redis Get Err:%v", getModuleErr.Error())
+		return false
+	}
+
+	return true
+}

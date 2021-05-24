@@ -132,7 +132,6 @@ func (m *BaseModule) OnInit(subclass module.RPCModule, app module.App, settings 
 	m.routineLock = make(chan bool, app.Options().RoutineCount)
 	m.GetServer().SetGoroutineControl(m)
 
-	//m.CheckHeartbeat(subclass.GetType())
 	m.watcher()
 }
 
@@ -307,9 +306,12 @@ func (m *BaseModule) watcher() {
 		return
 	}
 	for _, session := range serviceList {
+		if session.GetID() == m.GetServerID() {
+			continue
+		}
 		st := mqrpc.NewResultInvoke("HB", nil)
 		go func(s module.ServerSession) {
-			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
 			if _, callServerErr := s.Call(ctx, st); callServerErr == defaultRPC.DeadlineExceeded || callServerErr == defaultRPC.ClientClose {
 				if errOfDeregister := m.App.Registry().Deregister(s.GetService()); errOfDeregister != nil {

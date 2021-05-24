@@ -15,6 +15,7 @@ type Registry interface {
 	ListServices() ([]*Service, error)
 	String() string
 	Clean(typeName string) error
+	Check(string) bool
 }
 
 type Option func(*Options)
